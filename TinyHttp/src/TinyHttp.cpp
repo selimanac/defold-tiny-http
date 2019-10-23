@@ -55,8 +55,8 @@ static int client(lua_State *L)
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
     {
-        {"serve", serve},
-        {"client", client},
+        {"start_server", serve},
+        {"start_client", client},
         {"hi", sayHi},
        // {"post", post},
         {0, 0}};

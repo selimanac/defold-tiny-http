@@ -3,6 +3,10 @@
 #define LIB_NAME "TinyHttp"
 #define MODULE_NAME "thttp"
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <dmsdk/sdk.h>
 #include <TinyServer.hpp>
 #include <stdlib.h>

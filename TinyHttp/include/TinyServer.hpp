@@ -24,4 +24,6 @@ private:
 
     Client *cli;
     const char *contentType = "application/json";
+
+    std::thread *serverThread; 
 };

@@ -11,7 +11,7 @@ local function server_callbacks(self, message)
 	pprint(message)
 
 	if message.result == "server_is_running" then
-		thttp.client("localhost", 8800 ,client_callbacks)
+		thttp.start_client("localhost", 8800 ,client_callbacks)
 		thttp.hi();
 	end
 --	local j = json.decode(message.json)
@@ -27,7 +27,7 @@ end
 
 function init(self)
 	-- host, port, callback
-	thttp.serve("localhost", 8800 ,server_callbacks)
+	thttp.start_server("localhost", 8800 ,server_callbacks)
 
 	timer.delay(2, false, callback)
 	

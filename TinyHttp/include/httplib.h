@@ -4,7 +4,7 @@
 //  Copyright (c) 2019 Yuji Hirose. All rights reserved.
 //  MIT License
 //
-extern void QueueCommand(int id, char *ws_message);
+extern void QueueCommand(int id, char *ws_message); //ADDED
 
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
@@ -88,6 +88,8 @@ typedef int ssize_t;
 #include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+
+#undef min //ADDED
 
 #ifndef WSA_FLAG_NO_HANDLE_INHERIT
 #define WSA_FLAG_NO_HANDLE_INHERIT 0x80
@@ -1431,6 +1433,8 @@ inline bool read_content_with_length(Stream &strm, uint64_t len,
   uint64_t r = 0;
   while (r < len) {
     auto read_len = static_cast<size_t>(len - r);
+  //#undef min
+    //size_t minValue_ = (std::min(read_len, CPPHTTPLIB_RECV_BUFSIZ));
     auto n = strm.read(buf, std::min(read_len, CPPHTTPLIB_RECV_BUFSIZ));
     if (n <= 0) { return false; }
 
@@ -2566,7 +2570,9 @@ inline int Server::bind_internal(const char *host, int port, int socket_flags) {
 inline bool Server::listen_internal() {
   auto ret = true;
   is_running_ = true;
-  QueueCommand(0, "server_is_running");
+
+  QueueCommand(0, "server_is_running"); // ADDED
+  
   {
     std::unique_ptr<TaskQueue> task_queue(new_task_queue());
 
@@ -2987,7 +2993,8 @@ inline bool Client::process_request(Stream &strm, const Request &req,
     }
 
     int dummy_status;
-    if (!detail::read_content(strm, res, std::numeric_limits<size_t>::max(),
+    size_t maxValue_ = (std::numeric_limits<size_t>::max)(); //ADDED
+    if (!detail::read_content(strm, res, maxValue_,
                               dummy_status, req.progress, out)) {
       return false;
     }
