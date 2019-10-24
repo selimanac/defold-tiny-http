@@ -2,8 +2,24 @@
 #include <iostream>
 extern void QueueCommand(int id, char *ws_message);
 
+TinyServer::~TinyServer()
+{
+    if (svr.is_running())
+    {
+        serverStop();
+    }
+};
 
-std::string dump_headers(const Headers &headers)
+void TinyServer::serverStop()
+{
+    if (svr.is_running())
+    {
+        svr.stop();
+        serverThread->join();
+    }
+}
+
+std::string TinyServer::dump_headers(const Headers &headers)
 {
     std::string s;
     char buf[BUFSIZ];
@@ -18,7 +34,7 @@ std::string dump_headers(const Headers &headers)
     return s;
 }
 
-std::string log(const Request &req, const Response &res)
+std::string TinyServer::log(const Request &req, const Response &res)
 {
     std::string s;
     char buf[BUFSIZ];
@@ -60,9 +76,6 @@ std::string log(const Request &req, const Response &res)
     return s;
 }
 
-
-
-
 void TinyServer::initClient(const char *n_host, int n_port)
 {
 
@@ -72,7 +85,7 @@ void TinyServer::initClient(const char *n_host, int n_port)
     cli = new Client(chost, cport);
 }
 
-void TinyServer::sayHi()
+void TinyServer::clientHi()
 {
     auto res = cli->Get("/hi");
     if (res && res->status == 200)
@@ -84,33 +97,128 @@ void TinyServer::sayHi()
     }
 }
 
-void TinyServer::startServ(const char *n_host, int n_port)
+void TinyServer::clientGet(const char *path)
+{
+
+    auto res = cli->Get(path);
+    if (res && res->status == 200)
+    {
+        char *result = new char[res->body.length() + 1];
+        strcpy(result, res->body.c_str());
+
+        QueueCommand(1, result);
+    }
+}
+
+char *TinyServer::serverRegex(const Request &req, bool isString)
+{
+    std::string value = req.matches[1];
+    if (isString)
+    {
+        value = "\"" + value + "\"";
+    }
+    std::string result = "{ \"result\": " + value + " }";
+
+    char *cstr = new char[result.length() + 1];
+    strcpy(cstr, result.c_str());
+
+    return cstr;
+}
+
+void TinyServer::setPostResponseContent(const char *str)
+{
+    PostResponseContent = str;
+}
+
+void TinyServer::clientPost(const char *path )
+{
+   
+    auto res = cli->Post(path,postParams);
+    if (res && res->status == 200)
+    {
+        char *result = new char[res->body.length() + 1];
+        strcpy(result, res->body.c_str());
+
+        QueueCommand(1, result);
+    }
+}
+
+
+void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool enableError)
 {
 
     host = n_host;
     port = n_port;
 
+    isServerLogEnabled = enableLog;
+    isServerErrorEnabled = enableError;
+
     serverThread = new std::thread([&]() {
-        Server svr;
+        //   Server svr;
 
         svr.Get("/hi", [this](const Request &req, Response &res) {
-            res.set_content("{ \"test\": \"Defold says hi!\" }", contentType);
-            QueueCommand(0, "{ \"result\": 1 }");
+            res.set_content("{ \"result\": \"Defold says hi!\" }", contentType);
+            QueueCommand(0, "{ \"result\": \"Defold says hi!\" }");
+        });
+
+        svr.Get(R"(/num/(\d+))", [&](const Request &req, Response &res) {
+            char *cstr = serverRegex(req);
+            res.set_content(cstr, contentType);
+            QueueCommand(0, cstr);
+        });
+
+        svr.Get(R"(/str/(\w+))", [&](const Request &req, Response &res) {
+            char *cstr = serverRegex(req, true);
+            res.set_content(cstr, contentType);
+            QueueCommand(0, cstr);
         });
 
         svr.Post("/post", [&](const Request &req, Response &res) {
-            printf("req.get_param_value %s\n", req.get_param_value("data").c_str());
-            
-            printf("%s", log(req, res).c_str());
+            std::string s;
+            char buf[BUFSIZ];
 
-            char *data_cstr = new char[req.get_param_value("data").length() + 1];
-            strcpy(data_cstr, req.get_param_value("data").c_str());
+            std::string query;
+            for (auto it = req.params.begin(); it != req.params.end(); ++it)
+            {
+                const auto &x = *it;
+                snprintf(buf, sizeof(buf), "\"%s\": %s,", x.first.c_str(), x.second.c_str());
+                query += buf;
+            }
+
+            query = query.substr(0, query.size() - 1);
+
+            snprintf(buf, sizeof(buf), "{%s}", query.c_str());
+            s += buf;
+
+            res.status = 200;
+            res.set_content(PostResponseContent, contentType);
+            char *data_cstr = new char[s.length() + 1];
+            strcpy(data_cstr, s.c_str());
+
             QueueCommand(0, data_cstr);
         });
 
         svr.Get("/stop", [&](const Request &req, Response &res) {
             svr.stop();
         });
+
+        if (isServerErrorEnabled)
+        {
+            svr.set_error_handler([this](const Request & /*req*/, Response &res) {
+                const char *fmt = "{ \"error\": %d }";
+                ;
+                char buf[BUFSIZ];
+                snprintf(buf, sizeof(buf), fmt, res.status);
+                res.set_content(buf, contentType);
+            });
+        }
+
+        if (isServerLogEnabled)
+        {
+            svr.set_logger([this](const Request &req, const Response &res) {
+                printf("%s", log(req, res).c_str());
+            });
+        }
 
         svr.listen(host, port);
     });

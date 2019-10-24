@@ -123,16 +123,12 @@ static void FlushCommandQueue()
     {
 
         MessageCommand *cmd = &state->m_CmdQueue[i];
-        // ConnCallback &ad = g_Conn->m_Connections[cmd->m_Id];
-        printf("\nID: %i\n" , cmd->m_id);
         if (cmd->m_id == 0){
              InvokeCallback(&state->server_Callback, cmd);
         }else{
              InvokeCallback(&state->client_Callback, cmd);
         }
-       
-       
-
+    
         state->m_CmdQueue.EraseSwap(i--);
     }
 }

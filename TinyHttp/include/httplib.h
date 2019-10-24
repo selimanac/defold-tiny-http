@@ -2571,7 +2571,7 @@ inline bool Server::listen_internal() {
   auto ret = true;
   is_running_ = true;
 
-  QueueCommand(0, "server_is_running"); // ADDED
+  QueueCommand(0, "{\"status\": 1}"); // ADDED
   
   {
     std::unique_ptr<TaskQueue> task_queue(new_task_queue());
@@ -2613,6 +2613,7 @@ inline bool Server::listen_internal() {
   }
 
   is_running_ = false;
+  QueueCommand(0, "{\"status\": 0}"); // ADDED
   return ret;
 }
 
