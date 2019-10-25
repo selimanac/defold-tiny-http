@@ -1,6 +1,7 @@
 #pragma once
 #include <thread>
 #include <httplib.h>
+#include <Enums.hpp>
 
 using namespace httplib;
 
@@ -12,14 +13,16 @@ public:
     ~TinyServer();
 
     void startServ(const char *n_host, int n_port, bool enableLog = false, bool enableError = false);
+    void serverStop();
+    void setPostResponseContent(const char *str);
+    
     void initClient(const char *n_host, int n_port);
     void clientHi();
-    void clientGet(const char *path);
-    void setPostResponseContent(const char *str);
-    void serverStop();
-    void clientPost(const char *path);
-
+    void clientGet(const char *path, int eventID);
+    void clientPost(const char *path, int eventID);
+    
     httplib::Params postParams;
+    std::multimap<int, const char *> endPoints;
 
 private:
     const char *host = "localhost";
@@ -40,6 +43,8 @@ private:
     std::string log(const Request &req, const Response &res);
 
     char *serverRegex(const Request &req, bool isString = false);
-    const char *PostResponseContent;
+    const char *PostResponseContent ="{}";
     Server svr;
+
+    char * parseParams(const Request &req);
 };

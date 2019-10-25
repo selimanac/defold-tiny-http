@@ -22,6 +22,7 @@ struct LuaCallbackInfo
 struct MessageCommand
 {
     int m_id;
+    int m_eventId;
     char *m_ws_message;
 };
 
@@ -43,12 +44,13 @@ struct ConnectionState
 };
 ConnectionState *state = 0;
 
-void QueueCommand(int id, char *ws_message);
+void QueueCommand(int id, int eventID, char *ws_message);
 
-void QueueCommand(int id, char *ws_message)
+void QueueCommand(int id, int eventID, char *ws_message)
 {
     MessageCommand cmd;
     cmd.m_id = id;
+    cmd.m_eventId = eventID;
     cmd.m_ws_message = ws_message;
 
     if (state->m_CmdQueue.Full())
@@ -104,6 +106,9 @@ static void InvokeCallback(LuaCallbackInfo *cbk, MessageCommand *cmd)
 
     lua_createtable(L, 0, 0); // Main Table
 
+    lua_pushnumber(L, cmd->m_eventId);
+    lua_setfield(L, -2, "event_id");
+
     lua_pushstring(L, cmd->m_ws_message);
     lua_setfield(L, -2, "result");
 
@@ -123,15 +128,17 @@ static void FlushCommandQueue()
     {
 
         MessageCommand *cmd = &state->m_CmdQueue[i];
-        if (cmd->m_id == 0){
-             InvokeCallback(&state->server_Callback, cmd);
-        }else{
-             InvokeCallback(&state->client_Callback, cmd);
+        if (cmd->m_id == 0)
+        {
+            InvokeCallback(&state->server_Callback, cmd);
         }
-    
+        else
+        {
+            InvokeCallback(&state->client_Callback, cmd);
+        }
+
         state->m_CmdQueue.EraseSwap(i--);
     }
 }
 
-
- TinyServer *server = 0;
+TinyServer *server = 0;

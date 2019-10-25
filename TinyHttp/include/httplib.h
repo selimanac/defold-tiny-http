@@ -4,7 +4,7 @@
 //  Copyright (c) 2019 Yuji Hirose. All rights reserved.
 //  MIT License
 //
-extern void QueueCommand(int id, char *ws_message); //ADDED
+extern void QueueCommand(int id,int eventID, char *ws_message); //ADDED
 
 #ifndef CPPHTTPLIB_HTTPLIB_H
 #define CPPHTTPLIB_HTTPLIB_H
@@ -2571,7 +2571,7 @@ inline bool Server::listen_internal() {
   auto ret = true;
   is_running_ = true;
 
-  QueueCommand(0, "{\"status\": 1}"); // ADDED
+  QueueCommand(0, 0,  "{\"server_status\": 1}"); // ADDED
   
   {
     std::unique_ptr<TaskQueue> task_queue(new_task_queue());
@@ -2613,7 +2613,7 @@ inline bool Server::listen_internal() {
   }
 
   is_running_ = false;
-  QueueCommand(0, "{\"status\": 0}"); // ADDED
+  QueueCommand(0, 0, "{\"server_status\": 0}"); // ADDED
   return ret;
 }
 
