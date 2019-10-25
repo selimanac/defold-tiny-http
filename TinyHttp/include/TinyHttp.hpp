@@ -1,7 +1,7 @@
 #pragma once
 
 #define LIB_NAME "TinyHttp"
-#define MODULE_NAME "thttp"
+#define MODULE_NAME "dhttp"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -128,11 +128,11 @@ static void FlushCommandQueue()
     {
 
         MessageCommand *cmd = &state->m_CmdQueue[i];
-        if (cmd->m_id == 0)
+        if (cmd->m_id == 0) // From server
         {
             InvokeCallback(&state->server_Callback, cmd);
         }
-        else
+        else // From client
         {
             InvokeCallback(&state->client_Callback, cmd);
         }

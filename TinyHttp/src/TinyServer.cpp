@@ -19,6 +19,11 @@ void TinyServer::serverStop()
     }
 }
 
+bool TinyServer::isServerRunning()
+{
+    return svr.is_running();
+}
+
 std::string TinyServer::dump_headers(const Headers &headers)
 {
     std::string s;
@@ -89,26 +94,22 @@ void TinyServer::clientHi()
 {
 
     auto res = cli->Get("/hi");
-    if (res && res->status == 200)
-    {
-        char *result = new char[res->body.length() + 1];
-        strcpy(result, res->body.c_str());
 
-        QueueCommand(1, 0, result);
-    }
+    char *result = new char[res->body.length() + 1];
+    strcpy(result, res->body.c_str());
+
+    QueueCommand(1, 0, result);
 }
 
 void TinyServer::clientGet(const char *path, int eventID)
 {
 
     auto res = cli->Get(path);
-    if (res && res->status == 200)
-    {
-        char *result = new char[res->body.length() + 1];
-        strcpy(result, res->body.c_str());
 
-        QueueCommand(1, eventID, result);
-    }
+    char *result = new char[res->body.length() + 1];
+    strcpy(result, res->body.c_str());
+
+    QueueCommand(1, eventID, result);
 }
 
 char *TinyServer::serverRegex(const Request &req, bool isString)
@@ -135,13 +136,11 @@ void TinyServer::clientPost(const char *path, int eventID)
 {
 
     auto res = cli->Post(path, postParams);
-    if (res && res->status == 200)
-    {
-        char *result = new char[res->body.length() + 1];
-        strcpy(result, res->body.c_str());
 
-        QueueCommand(1, eventID, result);
-    }
+    char *result = new char[res->body.length() + 1];
+    strcpy(result, res->body.c_str());
+
+    QueueCommand(1, eventID, result);
 }
 
 char *TinyServer::parseParams(const Request &req)
@@ -192,7 +191,15 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
             {
                 svr.Post((*it).second, [&](const Request &req, Response &res) {
                     res.status = 200;
-                    res.set_content(PostResponseContent, contentType);
+                    if (PostResponseContent == "{}")
+                    {
+                        res.set_content(parseParams(req), contentType);
+                    }
+                    else
+                    {
+                        res.set_content(PostResponseContent, contentType);
+                    }
+
                     QueueCommand(0, 0, parseParams(req));
                 });
             }
@@ -217,7 +224,14 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
 
         svr.Post("/post", [&](const Request &req, Response &res) {
             res.status = 200;
-            res.set_content(PostResponseContent, contentType);
+            if (PostResponseContent == "{}")
+            {
+                res.set_content(parseParams(req), contentType);
+            }
+            else
+            {
+                res.set_content(PostResponseContent, contentType);
+            }
             QueueCommand(0, 0, parseParams(req));
         });
 
@@ -229,22 +243,14 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
         {
             svr.set_error_handler([this](const Request & /*req*/, Response &res) {
                 std::string error_result = "{ \"error\": " + std::to_string(res.status) + " }";
-                /*
-                const char *fmt = "{ \"error\": %d }";
 
-                char buf[BUFSIZ];
-                snprintf(buf, sizeof(buf), fmt, res.status);
-                res.set_content(buf, contentType);
-
-               */
-
-                /* check pChar is not null */
                 res.set_content(error_result.c_str(), contentType);
 
                 char *result = new char[error_result.length() + 1];
                 strcpy(result, error_result.c_str());
 
                 QueueCommand(0, 0, result);
+                QueueCommand(1, 0, result);
             });
         }
 

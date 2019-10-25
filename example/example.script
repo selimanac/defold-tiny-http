@@ -6,11 +6,15 @@ local function client_callbacks(self, message)
     pprint(message)
     local j = json.decode(message.result)
     pprint(j)
+
+    if j.error then
+        print("Error: ", j.error)
+    end
 end
 
 local function stopserver()
-    -- print("Lua Stop")
-    --  thttp.server_stop()
+   print("Lua Stop")
+    thttp.server_stop()
 end
 
 local function server_callbacks(self, message)
@@ -20,22 +24,27 @@ local function server_callbacks(self, message)
 
     local j = json.decode(message.result)
 
-    if j.server_status == 1 then
+    if j.server_status == thttp.SERVER_STOP then
+        print("Server Stopped")
+    end
+
+    if j.server_status == thttp.SERVER_START then
         print("Server Running")
 
         local params = {
             data = '{ "title": "TEST URLexample glossary" }',
             test = '{ "id": 1 }'
         }
-        --thttp.client_get("/str/wef23",123);
-        thttp.client_post("/test", params, 126)
-        timer.delay(1, false, stopserver)
+        thttp.client_get("/str/wef23",123);
+      --  thttp.client_post("/test", params, 126)
+      --  timer.delay(1, false, stopserver)
     end
     pprint(j)
 end
 
 function init(self)
     -- host, port, callback
+
 
     local host = "localhost"
     local port = 8800

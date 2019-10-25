@@ -24,6 +24,8 @@ public:
     httplib::Params postParams;
     std::multimap<int, const char *> endPoints;
 
+    bool isServerRunning();
+
 private:
     const char *host = "localhost";
     int port = 8808;

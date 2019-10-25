@@ -1,16 +1,16 @@
 #include <TinyHttp.hpp>
 
-void startServer(const char *host, int port, bool enableLog, bool enableError)
+void _startServer(const char *host, int port, bool enableLog, bool enableError)
 {
     server->startServ(host, port, enableLog, enableError);
 }
 
-void initClient(const char *host, int port)
+/* void _initClient(const char *host, int port)
 {
     server->initClient(host, port);
-}
+} */
 
-static int serverServe(lua_State *L)
+static int _serverServe(lua_State *L)
 {
     DM_LUA_STACK_CHECK(L, 0);
 
@@ -73,20 +73,18 @@ static int serverServe(lua_State *L)
         }
     }
 
-    startServer(host, port, enableLog, enableError);
-    // server->serv("host", 8800);
-    // Return 1 item
+    _startServer(host, port, enableLog, enableError);
     return 0;
 }
 
-static int clientSayHi(lua_State *L)
+static int _clientSayHi(lua_State *L)
 {
     DM_LUA_STACK_CHECK(L, 0);
     server->clientHi();
     return 0;
 }
 
-static int clientGet(lua_State *L)
+static int _clientGet(lua_State *L)
 {
     DM_LUA_STACK_CHECK(L, 0);
     const char *path = luaL_checkstring(L, 1);
@@ -95,7 +93,7 @@ static int clientGet(lua_State *L)
     return 0;
 }
 
-static int clientPost(lua_State *L)
+static int _clientPost(lua_State *L)
 {
     DM_LUA_STACK_CHECK(L, 0);
 
@@ -118,7 +116,7 @@ static int clientPost(lua_State *L)
     return 0;
 }
 
-static int clientServe(lua_State *L)
+static int _clientServe(lua_State *L)
 {
     DM_LUA_STACK_CHECK(L, 0);
 
@@ -126,14 +124,13 @@ static int clientServe(lua_State *L)
     int port = luaL_checkint(L, 2);
     RegisterCallback(L, 3, &state->client_Callback);
 
-    // initClient(host, port);
+   
     server->initClient(host, port);
-    // server->serv("host", 8800);
-    // Return 1 item
+
     return 0;
 }
 
-static int serverSetPostContent(lua_State *L)
+static int _serverSetPostContent(lua_State *L)
 {
     DM_LUA_STACK_CHECK(L, 0);
     const char *host = luaL_checkstring(L, 1);
@@ -148,16 +145,29 @@ static int _serverStop(lua_State *L)
     return 0;
 }
 
+static int _serverRunning(lua_State *L)
+{
+   
+    int top = lua_gettop(L);
+    bool isRunning = server->isServerRunning();
+    lua_pushboolean(L, isRunning);
+    assert(top + 1 == lua_gettop(L));
+    return 1;
+}
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] =
     {
-        {"server_start", serverServe},
-        {"server_post_content", serverSetPostContent},
+        {"server_start", _serverServe},
+        {"server_post_content", _serverSetPostContent},
         {"server_stop", _serverStop},
-        {"client_start", clientServe},
-        {"client_hi", clientSayHi},
-        {"client_get", clientGet},
-        {"client_post", clientPost},
+        {"is_server_running", _serverRunning},
+        
+        {"client_start", _clientServe},
+        {"client_hi", _clientSayHi},
+        {"client_get", _clientGet},
+        {"client_post", _clientPost},
+        
         // {"post", post},
         {0, 0}};
 
@@ -174,6 +184,14 @@ static void LuaInit(lua_State *L)
 
     SETCONSTANT(METHOD_GET);
     SETCONSTANT(METHOD_POST);
+#undef SETCONSTANT
+
+#define SETCONSTANT(name)                \
+    lua_pushnumber(L, (lua_Number)name); \
+    lua_setfield(L, -2, #name);
+
+    SETCONSTANT(SERVER_START);
+    SETCONSTANT(SERVER_STOP);
 #undef SETCONSTANT
 
     lua_pop(L, 1);

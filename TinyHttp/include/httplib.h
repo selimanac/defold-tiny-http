@@ -2613,7 +2613,7 @@ inline bool Server::listen_internal() {
   }
 
   is_running_ = false;
-  QueueCommand(0, 0, "{\"server_status\": 0}"); // ADDED
+  QueueCommand(0, 0, "{\"server_status\": 2}"); // ADDED
   return ret;
 }
 
