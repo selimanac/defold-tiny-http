@@ -17,6 +17,7 @@ local is_anim_complete = true
 local text_metric = {}
 local waitting_response = false
 local is_dragging = false
+local jresult = {}
 
 local EVENTS = {
     MONSTER = 1,
@@ -62,8 +63,10 @@ local monster_buttons = {
     }
 }
 
+local monster_buttons_count = #monster_buttons
+
 -- Server settings
-local host = "192.168.1.6"
+local host = "localhost"
 local port = 8800
 
 local function print_log(result)
@@ -72,11 +75,10 @@ local function print_log(result)
 end
 
 local function client_callbacks(self, message)
-  
-    local result = cjson.decode(message.result)
+    jresult = cjson.decode(message.result)
 
-    if result.error then
-        print("Error: ", result.error)
+    if jresult.error then
+        print("Error: ", jresult.error)
     end
 
     print_log(message.result)
@@ -94,7 +96,7 @@ local function anim_complete()
 end
 
 local function setup_btns()
-    for i = 1, #monster_buttons do
+    for i = 1, monster_buttons_count do
         monster_buttons[i].node = gui.get_node(monster_buttons[i].id)
     end
 end
@@ -102,7 +104,7 @@ end
 local function client_get(event_id)
     local txt = gui.get_text(txt_input)
     txt = "/" .. txt
-   
+
     dhttp.client_get(txt, event_id)
 
     if is_anim_complete then
@@ -119,12 +121,11 @@ local function client_post()
         y = mosq_pos.y
     }
 
-    local jresult = cjson.encode(temp_table)
+    jresult = cjson.encode(temp_table)
 
     local params = {
         position = jresult
     }
-
 
     dhttp.client_post("/post", params, EVENTS.MOSQUITO)
 end
@@ -135,6 +136,7 @@ end
 
 function init(self)
     msg.post("@render:", "clear_color", {color = vmath.vector4(251 / 255, 251 / 255, 251 / 255, 0)})
+    msg.post("@render:", "use_fixed_projection", { near = -1, far = 1, zoom = 1 })
     msg.post(".", "acquire_input_focus")
 
     host_txt = gui.get_node("host")
@@ -142,20 +144,23 @@ function init(self)
     send_btn_label = gui.get_node("send_btn_label")
     server_log_txt = gui.get_node("server_log")
     defold_logo = gui.get_node("defold")
-    logo_pos = gui.get_position(defold_logo)
     indicator = gui.get_node("indicator")
     txt_input = gui.get_node("txt_input")
     input_back = gui.get_node("input_back")
     monster_node = gui.get_node("monster")
     mosq_node = gui.get_node("mosq")
 
+    logo_pos = gui.get_position(defold_logo)
+
     gui.set_text(host_txt, "SERVER:" .. host .. ":" .. tostring(port))
+
     gui.animate(indicator, "color.w", 0, gui.EASING_INOUTCIRC, 0.5, 0.1, nil, gui.PLAYBACK_LOOP_PINGPONG)
     gui.animate(defold_logo, "position.y", logo_pos.y + 50, gui.EASING_INBOUNCE, 1, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
 
     setup_btns()
 
     indicator_pos = gui.get_position(indicator)
+
     update_indicator()
     init_client()
 end
@@ -201,13 +206,16 @@ function on_input(self, action_id, action)
             is_dragging = true
         end
 
-        for i = 1, #monster_buttons do
+        for i = 1, monster_buttons_count do
             if gui.pick_node(monster_buttons[i].node, action.x, action.y) then
                 waitting_response = true
-               
+
                 gui.set_text(txt_input, (monster_buttons[i].end_point .. monster_buttons[i].anim_id))
+
                 update_indicator()
+
                 gui.play_flipbook(monster_node, monster_buttons[i].anim)
+
                 client_get(EVENTS.MONSTER)
             end
         end

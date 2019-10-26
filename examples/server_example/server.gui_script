@@ -2,13 +2,16 @@ local host_txt, con_btn, server_indicator, con_btn_label, server_log_txt, defold
 local logo_pos = vmath.vector3()
 local is_Active = false
 local log_txt = ""
+local jresult = {}
+local event_id = 0
 
 -- Server settings
-local host = "192.168.1.6"
+local host = "localhost"
 local port = 8800
 local enable_log = false -- Optional
 local enable_error = true -- Optional
-local end_points = {
+-- Optional Endpoints
+local endpoints = {
     {
         end_point_type = dhttp.METHOD_GET,
         end_point = "/monster/(\\d+)"
@@ -29,7 +32,6 @@ local monster_anims = {
 }
 
 local function server_stopped()
-    print("Server Stopped")
     gui.set_text(con_btn_label, "Start")
     gui.set_color(server_indicator, vmath.vector4(1, 0, 0, 1))
     is_Active = false
@@ -37,7 +39,6 @@ local function server_stopped()
     gui.set_position(defold_logo, logo_pos)
 end
 local function server_started()
-    print("Server Running")
     gui.set_text(con_btn_label, "Stop")
     gui.set_color(server_indicator, vmath.vector4(0, 1, 0, 1))
     is_Active = false
@@ -54,32 +55,27 @@ local function monster_anim(id)
 end
 
 local function server_callbacks(self, message)
-  
-    local jresult = cjson.decode(message.result)
-    local event_id = message.event_id
-
-
-    if event_id == EVENTS.MOSQUITO and jresult.server_status == nil then
-    
-        local pos = vmath.vector3(jresult.position.x, jresult.position.y, 1)
-        gui.set_position(mosq_node, pos)
-    end
-
-    if event_id == EVENTS.MONSTER and jresult.server_status == nil then
-        monster_anim(tonumber(jresult.result))
-    end
+    jresult = cjson.decode(message.result)
+    event_id = message.event_id
 
     if jresult.server_status == dhttp.SERVER_STOP then
         server_stopped()
     elseif jresult.server_status == dhttp.SERVER_START then
         server_started()
+    else
+        if event_id == EVENTS.MOSQUITO then
+            local pos = vmath.vector3(jresult.position.x, jresult.position.y, 1)
+            gui.set_position(mosq_node, pos)
+        elseif event_id == EVENTS.MONSTER then
+            monster_anim(tonumber(jresult.result))
+        end
     end
 
     print_log(message.result)
 end
 
 local function start_server()
-    dhttp.server_start(host, port, server_callbacks, enable_log, enable_error, end_points)
+    dhttp.server_start(host, port, server_callbacks, enable_log, enable_error, endpoints)
 end
 
 local function stop_server()
@@ -87,6 +83,8 @@ local function stop_server()
 end
 function init(self)
     msg.post("@render:", "clear_color", {color = vmath.vector4(251 / 255, 251 / 255, 251 / 255, 0)})
+    msg.post("@render:", "use_fixed_projection", { near = -1, far = 1, zoom = 1 })
+
     msg.post(".", "acquire_input_focus")
 
     host_txt = gui.get_node("host")
@@ -95,10 +93,10 @@ function init(self)
     con_btn_label = gui.get_node("con_btn_label")
     server_log_txt = gui.get_node("server_log")
     defold_logo = gui.get_node("defold")
-    logo_pos = gui.get_position(defold_logo)
-
     monster_node = gui.get_node("monster")
     mosq_node = gui.get_node("mosq")
+
+    logo_pos = gui.get_position(defold_logo)
 
     gui.set_text(host_txt, "SERVER:" .. host .. ":" .. tostring(port))
 end
@@ -114,7 +112,6 @@ function on_input(self, action_id, action)
                 stop_server()
                 gui.set_text(con_btn_label, "Stopping")
             end
-
             gui.set_color(server_indicator, vmath.vector4(1, 1, 0, 1))
         end
     end

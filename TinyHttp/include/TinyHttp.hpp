@@ -9,7 +9,6 @@
 #endif
 
 #include <dmsdk/sdk.h>
-
 #include <TinyServer.hpp>
 #include <stdlib.h>
 

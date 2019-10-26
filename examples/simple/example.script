@@ -1,5 +1,3 @@
-local w
-
 local function client_callbacks(self, message)
     print("========================")
     print("client_callbacks")
@@ -12,10 +10,9 @@ local function client_callbacks(self, message)
     end
 end
 
-local function stopserver()
-   print("Lua Stop")
-    dhttp.server_stop()
-end
+-- local function stopserver()
+--     dhttp.server_stop()
+-- end
 
 local function server_callbacks(self, message)
     print("========================")
@@ -32,26 +29,24 @@ local function server_callbacks(self, message)
         print("Server Running")
 
         local params = {
-            data = '{ "title": "TEST URLexample glossary" }',
-            test = '{ "id": 1 }'
+            data = '{"title": "Test Title"}',
+            test = '{"id": 1}'
         }
-        dhttp.client_get("/str/wef23",123);
-      --  dhttp.client_post("/test", params, 126)
-      --  timer.delay(1, false, stopserver)
+        --  dhttp.client_get("/str/abc123", 1)
+        dhttp.client_post("/test/abc123", params, 2)
+    --  timer.delay(1, false, stopserver)
     end
-    pprint(j)
 end
 
 function init(self)
-    -- host, port, callback
+    msg.post("@render:", "use_fixed_projection", {near = -1, far = 1, zoom = 1})
 
-
-    local host = "192.168.1.6"
+    local host = "localhost"
     local port = 8800
-    local enable_log = false -- Optional
+    local enable_log = true -- Optional
     local enable_error = true -- Optional
-
-    local end_points = {
+    -- Optional Endpoints
+    local endpoints = {
         {
             end_point_type = dhttp.METHOD_GET,
             end_point = "/mix/(.+)"
@@ -62,11 +57,12 @@ function init(self)
         }
     }
 
-    -- dhttp.server_post_content('{ "postback": "from server" }')
-    dhttp.server_start(host, port, server_callbacks, enable_log, enable_error, end_points)
+    -- Start Server
+    dhttp.server_start(host, port, server_callbacks, enable_log, enable_error, endpoints)
+    -- Content for all posts
+    dhttp.server_post_content('{ "postback": "from server" }')
 
-    -- dhttp.server_start(host, port, server_callbacks, enable_log, enable_error)
-
+    -- Init Client
     dhttp.client_start(host, port, client_callbacks)
 
     go.animate("/go1", "position.y", go.PLAYBACK_LOOP_PINGPONG, 0, go.EASING_INBACK, 3)

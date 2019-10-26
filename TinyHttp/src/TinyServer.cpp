@@ -83,21 +83,16 @@ std::string TinyServer::log(const Request &req, const Response &res)
 
 void TinyServer::initClient(const char *n_host, int n_port)
 {
-
     chost = n_host;
     cport = n_port;
-
     cli = new Client(chost, cport, 5);
 }
 
 void TinyServer::clientHi()
 {
-
     auto res = cli->Get("/hi");
-
     char *result = new char[res->body.length() + 1];
     strcpy(result, res->body.c_str());
-
     QueueCommand(1, 0, result);
 }
 
@@ -111,7 +106,6 @@ void TinyServer::clientGet(const char *path, int eventID)
     }
 
     httplib::Headers headers = {{"Event-ID", std::to_string(eventID)}};
-
     auto res = cli->Get(path, headers);
 
     if (!res)
@@ -268,14 +262,12 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
 
         svr.Get("/hi", [this](const Request &req, Response &res) {
             res.set_content("{ \"result\": \"Defold says hi!\" }", contentType);
-
             QueueCommand(0, getEventID(req), "{ \"result\": \"Defold says hi!\" }");
         });
 
         svr.Get(R"(/num/(\d+))", [&](const Request &req, Response &res) {
             char *cstr = serverRegex(req);
             res.set_content(cstr, contentType);
-
             QueueCommand(0, getEventID(req), cstr);
         });
 
@@ -306,12 +298,9 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
         {
             svr.set_error_handler([this](const Request & /*req*/, Response &res) {
                 std::string error_result = "{ \"error\": " + std::to_string(res.status) + " }";
-
                 res.set_content(error_result.c_str(), contentType);
-
                 char *result = new char[error_result.length() + 1];
                 strcpy(result, error_result.c_str());
-
                 QueueCommand(0, 0, result);
                 QueueCommand(1, 0, result);
             });

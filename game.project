@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /client_example/client.collectionc
+main_collection = /examples/server_example/server.collectionc
 
 [script]
 shared_state = 1
@@ -13,7 +13,7 @@ title = TinyHttp
 dependencies = https://github.com/Melsoft-Games/defold-cjson/archive/master.zip
 
 [library]
-include_dirs = myextension
+include_dirs = TinyHttp
 
 [input]
 repeat_delay = 0.1

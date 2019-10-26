@@ -5,11 +5,6 @@ void _startServer(const char *host, int port, bool enableLog, bool enableError)
     server->startServ(host, port, enableLog, enableError);
 }
 
-/* void _initClient(const char *host, int port)
-{
-    server->initClient(host, port);
-} */
-
 static int _serverServe(lua_State *L)
 {
     DM_LUA_STACK_CHECK(L, 0);
@@ -33,7 +28,6 @@ static int _serverServe(lua_State *L)
 
     if (lua_istable(L, 6))
     {
-
         luaL_checktype(L, 6, LUA_TTABLE);
         if (lua_istable(L, 6))
         {
@@ -124,7 +118,6 @@ static int _clientServe(lua_State *L)
     int port = luaL_checkint(L, 2);
     RegisterCallback(L, 3, &state->client_Callback);
 
-   
     server->initClient(host, port);
 
     return 0;
@@ -147,7 +140,6 @@ static int _serverStop(lua_State *L)
 
 static int _serverRunning(lua_State *L)
 {
-   
     int top = lua_gettop(L);
     bool isRunning = server->isServerRunning();
     lua_pushboolean(L, isRunning);
@@ -162,13 +154,11 @@ static const luaL_reg Module_methods[] =
         {"server_post_content", _serverSetPostContent},
         {"server_stop", _serverStop},
         {"is_server_running", _serverRunning},
-        
+
         {"client_start", _clientServe},
         {"client_hi", _clientSayHi},
         {"client_get", _clientGet},
         {"client_post", _clientPost},
-        
-        // {"post", post},
         {0, 0}};
 
 static void LuaInit(lua_State *L)
@@ -215,7 +205,6 @@ dmExtension::Result InitializeTinyHttp(dmExtension::Params *params)
 
 static dmExtension::Result UpdateTinyHttp(dmExtension::Params *params)
 {
-
     if (state)
     {
         FlushCommandQueue();
@@ -224,14 +213,10 @@ static dmExtension::Result UpdateTinyHttp(dmExtension::Params *params)
     return dmExtension::RESULT_OK;
 }
 
-dmExtension::Result AppFinalizeTinyHttp(dmExtension::AppParams *params)
-{
-    return dmExtension::RESULT_OK;
-}
-
 dmExtension::Result FinalizeTinyHttp(dmExtension::Params *params)
 {
+    server->serverStop();
     return dmExtension::RESULT_OK;
 }
 
-DM_DECLARE_EXTENSION(TinyHttp, LIB_NAME, AppInitializeTinyHttp, AppFinalizeTinyHttp, InitializeTinyHttp, UpdateTinyHttp, 0, FinalizeTinyHttp)
+DM_DECLARE_EXTENSION(TinyHttp, LIB_NAME, AppInitializeTinyHttp, 0, InitializeTinyHttp, UpdateTinyHttp, 0, FinalizeTinyHttp)
