@@ -14,7 +14,7 @@ end
 
 local function stopserver()
    print("Lua Stop")
-    thttp.server_stop()
+    dhttp.server_stop()
 end
 
 local function server_callbacks(self, message)
@@ -24,19 +24,19 @@ local function server_callbacks(self, message)
 
     local j = json.decode(message.result)
 
-    if j.server_status == thttp.SERVER_STOP then
+    if j.server_status == dhttp.SERVER_STOP then
         print("Server Stopped")
     end
 
-    if j.server_status == thttp.SERVER_START then
+    if j.server_status == dhttp.SERVER_START then
         print("Server Running")
 
         local params = {
             data = '{ "title": "TEST URLexample glossary" }',
             test = '{ "id": 1 }'
         }
-        thttp.client_get("/str/wef23",123);
-      --  thttp.client_post("/test", params, 126)
+        dhttp.client_get("/str/wef23",123);
+      --  dhttp.client_post("/test", params, 126)
       --  timer.delay(1, false, stopserver)
     end
     pprint(j)
@@ -46,28 +46,28 @@ function init(self)
     -- host, port, callback
 
 
-    local host = "localhost"
+    local host = "192.168.1.6"
     local port = 8800
     local enable_log = false -- Optional
     local enable_error = true -- Optional
 
     local end_points = {
         {
-            end_point_type = thttp.METHOD_GET,
+            end_point_type = dhttp.METHOD_GET,
             end_point = "/mix/(.+)"
         },
         {
-            end_point_type = thttp.METHOD_POST,
+            end_point_type = dhttp.METHOD_POST,
             end_point = "/test/(\\w+)"
         }
     }
 
-    -- thttp.server_post_content('{ "postback": "from server" }')
-    thttp.server_start(host, port, server_callbacks, enable_log, enable_error, end_points)
+    -- dhttp.server_post_content('{ "postback": "from server" }')
+    dhttp.server_start(host, port, server_callbacks, enable_log, enable_error, end_points)
 
-    -- thttp.server_start(host, port, server_callbacks, enable_log, enable_error)
+    -- dhttp.server_start(host, port, server_callbacks, enable_log, enable_error)
 
-    thttp.client_start(host, port, client_callbacks)
+    dhttp.client_start(host, port, client_callbacks)
 
     go.animate("/go1", "position.y", go.PLAYBACK_LOOP_PINGPONG, 0, go.EASING_INBACK, 3)
 end

@@ -72,10 +72,7 @@ local function print_log(result)
 end
 
 local function client_callbacks(self, message)
-    print("========================")
-    print("client_callbacks")
-   
-
+  
     local result = cjson.decode(message.result)
 
     if result.error then

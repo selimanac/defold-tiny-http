@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /server_example/server.collectionc
+main_collection = /client_example/client.collectionc
 
 [script]
 shared_state = 1

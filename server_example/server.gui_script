@@ -54,10 +54,7 @@ local function monster_anim(id)
 end
 
 local function server_callbacks(self, message)
-    print("========================")
-    print("server_callbacks")
   
-   
     local jresult = cjson.decode(message.result)
     local event_id = message.event_id
 
