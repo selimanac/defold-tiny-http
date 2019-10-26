@@ -1,65 +1,84 @@
-local host_txt, con_btn, server_indicator, con_btn_label, server_log_txt, defold_logo
+local host_txt, con_btn, server_indicator, con_btn_label, server_log_txt, defold_logo, monster_node, mosq_node
 local logo_pos = vmath.vector3()
 local is_Active = false
 local log_txt = ""
 
 -- Server settings
-local host = "localhost"
+local host = "192.168.1.6"
 local port = 8800
 local enable_log = false -- Optional
 local enable_error = true -- Optional
 local end_points = {
     {
         end_point_type = dhttp.METHOD_GET,
-        end_point = "/mix/(.+)"
-    },
-    {
-        end_point_type = dhttp.METHOD_POST,
-        end_point = "/test/(\\w+)"
+        end_point = "/monster/(\\d+)"
     }
 }
 
+local EVENTS = {
+    MONSTER = 1,
+    MOSQUITO = 2
+}
+
+local monster_anims = {
+    [1] = "mon_idle",
+    [2] = "mon_attack",
+    [3] = "mon_defeated",
+    [4] = "mon_gothit",
+    [5] = "mon_walking"
+}
 
 local function server_stopped()
-	print("Server Stopped")
-	gui.set_text(con_btn_label, "Start")
-	gui.set_color(server_indicator, vmath.vector4(1, 0, 0, 1))
-	is_Active = false
-	gui.cancel_animation(defold_logo, "position.y")
-	gui.set_position(defold_logo, logo_pos)
+    print("Server Stopped")
+    gui.set_text(con_btn_label, "Start")
+    gui.set_color(server_indicator, vmath.vector4(1, 0, 0, 1))
+    is_Active = false
+    gui.cancel_animation(defold_logo, "position.y")
+    gui.set_position(defold_logo, logo_pos)
 end
 local function server_started()
-	print("Server Running")
-	gui.set_text(con_btn_label, "Stop")
-	gui.set_color(server_indicator, vmath.vector4(0, 1, 0, 1))
-	is_Active = false
-	gui.animate(
-		defold_logo,
-		"position.y",
-		logo_pos.y + 50,
-		gui.EASING_INBOUNCE,
-		1,
-		0,
-		nil,
-		gui.PLAYBACK_LOOP_PINGPONG
-	)
+    print("Server Running")
+    gui.set_text(con_btn_label, "Stop")
+    gui.set_color(server_indicator, vmath.vector4(0, 1, 0, 1))
+    is_Active = false
+    gui.animate(defold_logo, "position.y", logo_pos.y + 50, gui.EASING_INBOUNCE, 1, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+end
+
+local function print_log(result)
+    log_txt = os.date("%m/%d/%Y %I:%M %p") .. " - " .. result .. "\n" .. log_txt
+    gui.set_text(server_log_txt, log_txt)
+end
+
+local function monster_anim(id)
+    gui.play_flipbook(monster_node, monster_anims[id])
 end
 
 local function server_callbacks(self, message)
     print("========================")
     print("server_callbacks")
-	pprint(message)
-	
-	local result = cjson.decode(message.result)
-	
-    if result.server_status == dhttp.SERVER_STOP then
-		server_stopped()
-    elseif result.server_status == dhttp.SERVER_START then
-		server_started()
+  
+   
+    local jresult = cjson.decode(message.result)
+    local event_id = message.event_id
+
+
+    if event_id == EVENTS.MOSQUITO and jresult.server_status == nil then
+    
+        local pos = vmath.vector3(jresult.position.x, jresult.position.y, 1)
+        gui.set_position(mosq_node, pos)
     end
 
-    log_txt = os.date("%m/%d/%Y %I:%M %p") .. "-" .. message.result .. "\n" .. log_txt
-    gui.set_text(server_log_txt, log_txt)
+    if event_id == EVENTS.MONSTER and jresult.server_status == nil then
+        monster_anim(tonumber(jresult.result))
+    end
+
+    if jresult.server_status == dhttp.SERVER_STOP then
+        server_stopped()
+    elseif jresult.server_status == dhttp.SERVER_START then
+        server_started()
+    end
+
+    print_log(message.result)
 end
 
 local function start_server()
@@ -78,17 +97,19 @@ function init(self)
     server_indicator = gui.get_node("server_indicator")
     con_btn_label = gui.get_node("con_btn_label")
     server_log_txt = gui.get_node("server_log")
-	defold_logo = gui.get_node("defold")
-	logo_pos = gui.get_position(defold_logo)
+    defold_logo = gui.get_node("defold")
+    logo_pos = gui.get_position(defold_logo)
 
-	gui.set_text(host_txt, "SERVER:" ..  host .. ":" .. tostring(port))
+    monster_node = gui.get_node("monster")
+    mosq_node = gui.get_node("mosq")
+
+    gui.set_text(host_txt, "SERVER:" .. host .. ":" .. tostring(port))
 end
 
 function on_input(self, action_id, action)
     if action_id == hash("touch") and action.pressed then
         if gui.pick_node(con_btn, action.x, action.y) and is_Active == false then
             is_Active = true
-            pprint(dhttp.is_server_running())
             if dhttp.is_server_running() == false then
                 start_server()
                 gui.set_text(con_btn_label, "Starting")

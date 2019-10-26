@@ -1,0 +1,352 @@
+images {
+  image: "/assets/icon_192.png"
+}
+animations {
+  id: "mosq"
+  images {
+    image: "/assets/mosquito_00.png"
+  }
+  images {
+    image: "/assets/mosquito_01.png"
+  }
+  images {
+    image: "/assets/mosquito_02.png"
+  }
+  images {
+    image: "/assets/mosquito_03.png"
+  }
+  images {
+    image: "/assets/mosquito_04.png"
+  }
+  images {
+    image: "/assets/mosquito_05.png"
+  }
+  images {
+    image: "/assets/mosquito_06.png"
+  }
+  images {
+    image: "/assets/mosquito_07.png"
+  }
+  images {
+    image: "/assets/mosquito_08.png"
+  }
+  images {
+    image: "/assets/mosquito_09.png"
+  }
+  images {
+    image: "/assets/mosquito_10.png"
+  }
+  images {
+    image: "/assets/mosquito_11.png"
+  }
+  images {
+    image: "/assets/mosquito_12.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 60
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "mon_attack"
+  images {
+    image: "/assets/attack/skeleton-attack_0.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_1.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_2.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_3.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_4.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_5.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_6.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_7.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_8.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_9.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_10.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_11.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_12.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_13.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_14.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_15.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_16.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_17.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_18.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_19.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_20.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_21.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_22.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_23.png"
+  }
+  images {
+    image: "/assets/attack/skeleton-attack_24.png"
+  }
+  playback: PLAYBACK_ONCE_FORWARD
+  fps: 34
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "mon_defeated"
+  images {
+    image: "/assets/defeated/skeleton-defeated_0.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_1.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_2.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_3.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_4.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_5.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_6.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_7.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_8.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_9.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_10.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_11.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_12.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_13.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_14.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_15.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_16.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_17.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_18.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_19.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_20.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_21.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_22.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_23.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_24.png"
+  }
+  images {
+    image: "/assets/defeated/skeleton-defeated_25.png"
+  }
+  playback: PLAYBACK_ONCE_FORWARD
+  fps: 34
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "mon_gothit"
+  images {
+    image: "/assets/gothit/skeleton-got_hit_0.png"
+  }
+  images {
+    image: "/assets/gothit/skeleton-got_hit_1.png"
+  }
+  images {
+    image: "/assets/gothit/skeleton-got_hit_2.png"
+  }
+  images {
+    image: "/assets/gothit/skeleton-got_hit_3.png"
+  }
+  images {
+    image: "/assets/gothit/skeleton-got_hit_4.png"
+  }
+  images {
+    image: "/assets/gothit/skeleton-got_hit_5.png"
+  }
+  images {
+    image: "/assets/gothit/skeleton-got_hit_6.png"
+  }
+  images {
+    image: "/assets/gothit/skeleton-got_hit_7.png"
+  }
+  playback: PLAYBACK_ONCE_FORWARD
+  fps: 34
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "mon_idle"
+  images {
+    image: "/assets/idle/skeleton-idle_0.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_1.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_2.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_3.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_4.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_5.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_6.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_7.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_8.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_9.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_10.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_11.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_12.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_13.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_14.png"
+  }
+  images {
+    image: "/assets/idle/skeleton-idle_15.png"
+  }
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 34
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+animations {
+  id: "mon_walking"
+  images {
+    image: "/assets/walking/skeleton-walking_0.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_1.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_2.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_3.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_4.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_5.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_6.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_7.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_8.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_9.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_10.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_11.png"
+  }
+  images {
+    image: "/assets/walking/skeleton-walking_12.png"
+  }
+  
+  playback: PLAYBACK_LOOP_FORWARD
+  fps: 34
+  flip_horizontal: 0
+  flip_vertical: 0
+}
+margin: 0
+extrude_borders: 2
+inner_padding: 0

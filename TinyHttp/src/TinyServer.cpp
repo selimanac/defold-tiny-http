@@ -87,7 +87,7 @@ void TinyServer::initClient(const char *n_host, int n_port)
     chost = n_host;
     cport = n_port;
 
-    cli = new Client(chost, cport);
+    cli = new Client(chost, cport, 5);
 }
 
 void TinyServer::clientHi()
@@ -103,13 +103,73 @@ void TinyServer::clientHi()
 
 void TinyServer::clientGet(const char *path, int eventID)
 {
+    if (!cli)
+    {
+        assert("Failed");
+        dmLogError("Client is not initialized!", 1);
+        return;
+    }
 
-    auto res = cli->Get(path);
+    httplib::Headers headers = {{"Event-ID", std::to_string(eventID)}};
 
-    char *result = new char[res->body.length() + 1];
-    strcpy(result, res->body.c_str());
+    auto res = cli->Get(path, headers);
 
-    QueueCommand(1, eventID, result);
+    if (!res)
+    {
+        QueueCommand(1, 0, "{ \"error\": 503 }");
+        return;
+    }
+
+    if (res && res->status == 200)
+    {
+        char *result = new char[res->body.length() + 1];
+        strcpy(result, res->body.c_str());
+        QueueCommand(1, eventID, result);
+    }
+    else if (res)
+    {
+        std::string error_result = "{ \"error\": " + std::to_string(res->status) + " }";
+
+        char *result = new char[error_result.length() + 1];
+        strcpy(result, error_result.c_str());
+        QueueCommand(1, eventID, result);
+    }
+}
+
+void TinyServer::clientPost(const char *path, int eventID)
+{
+    if (!cli)
+    {
+        assert("Failed");
+        dmLogError("Client is not initialized!", 1);
+        return;
+    }
+    
+    httplib::Headers headers = {{"Event-ID", std::to_string(eventID)}};
+    auto res = cli->Post(path, headers, postParams);
+
+    if (!res)
+    {
+        QueueCommand(1, 0, "{ \"error\": 503 }");
+        return;
+    }
+
+    if (res && res->status == 200)
+    {
+        char *result = new char[res->body.length() + 1];
+        strcpy(result, res->body.c_str());
+
+        QueueCommand(1, eventID, result);
+    }
+    else if (res)
+    {
+        std::string error_result = "{ \"error\": " + std::to_string(res->status) + " }";
+
+        char *result = new char[error_result.length() + 1];
+        strcpy(result, error_result.c_str());
+
+        QueueCommand(1, eventID, result);
+    }
 }
 
 char *TinyServer::serverRegex(const Request &req, bool isString)
@@ -130,17 +190,6 @@ char *TinyServer::serverRegex(const Request &req, bool isString)
 void TinyServer::setPostResponseContent(const char *str)
 {
     PostResponseContent = str;
-}
-
-void TinyServer::clientPost(const char *path, int eventID)
-{
-
-    auto res = cli->Post(path, postParams);
-
-    char *result = new char[res->body.length() + 1];
-    strcpy(result, res->body.c_str());
-
-    QueueCommand(1, eventID, result);
 }
 
 char *TinyServer::parseParams(const Request &req)
@@ -165,6 +214,18 @@ char *TinyServer::parseParams(const Request &req)
     return data_cstr;
 }
 
+int TinyServer::getEventID(const Request &req)
+{
+    auto search = req.headers.find("Event-ID");
+    int event_id = 0;
+    if (search != req.headers.end())
+    {
+        // std::cout << "Found " << search->first << " " << search->second << '\n';
+        event_id = std::stoi(search->second);
+    }
+    return event_id;
+}
+
 void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool enableError)
 {
 
@@ -184,7 +245,7 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
                 svr.Get((*it).second, [&](const Request &req, Response &res) {
                     char *cstr = serverRegex(req, true);
                     res.set_content(cstr, contentType);
-                    QueueCommand(0, 0, cstr);
+                    QueueCommand(0, getEventID(req), cstr);
                 });
             }
             else if ((*it).first == METHOD_POST)
@@ -200,20 +261,22 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
                         res.set_content(PostResponseContent, contentType);
                     }
 
-                    QueueCommand(0, 0, parseParams(req));
+                    QueueCommand(0, getEventID(req), parseParams(req));
                 });
             }
         }
 
         svr.Get("/hi", [this](const Request &req, Response &res) {
             res.set_content("{ \"result\": \"Defold says hi!\" }", contentType);
-            QueueCommand(0, 0, "{ \"result\": \"Defold says hi!\" }");
+
+            QueueCommand(0, getEventID(req), "{ \"result\": \"Defold says hi!\" }");
         });
 
         svr.Get(R"(/num/(\d+))", [&](const Request &req, Response &res) {
             char *cstr = serverRegex(req);
             res.set_content(cstr, contentType);
-            QueueCommand(0, 0, cstr);
+
+            QueueCommand(0, getEventID(req), cstr);
         });
 
         svr.Get(R"(/str/(\w+))", [&](const Request &req, Response &res) {
@@ -232,7 +295,7 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
             {
                 res.set_content(PostResponseContent, contentType);
             }
-            QueueCommand(0, 0, parseParams(req));
+            QueueCommand(0, getEventID(req), parseParams(req));
         });
 
         svr.Get("/stop", [&](const Request &req, Response &res) {

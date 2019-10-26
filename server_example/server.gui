@@ -5,7 +5,7 @@ fonts {
 }
 textures {
   name: "test"
-  texture: "/example/test.atlas"
+  texture: "/assets/test.atlas"
 }
 background_color {
   x: 0.0
@@ -364,8 +364,8 @@ nodes {
 }
 nodes {
   position {
-    x: 720.0
-    y: 358.0
+    x: 718.0
+    y: 372.0
     z: 0.0
     w: 1.0
   }
@@ -382,21 +382,21 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
-    y: 100.0
+    x: 162.0
+    y: 120.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 0.9019608
-    y: 0.3019608
-    z: 0.3019608
+    x: 1.0
+    y: 1.0
+    z: 1.0
     w: 1.0
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "red_box"
+  texture: "test/mosq"
+  id: "mosq"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
@@ -418,8 +418,8 @@ nodes {
 }
 nodes {
   position {
-    x: 720.0
-    y: 208.0
+    x: 718.0
+    y: 173.0
     z: 0.0
     w: 1.0
   }
@@ -430,27 +430,27 @@ nodes {
     w: 1.0
   }
   scale {
+    x: 0.3
+    y: 0.3
+    z: 1.0
+    w: 1.0
+  }
+  size {
+    x: 558.0
+    y: 554.0
+    z: 0.0
+    w: 1.0
+  }
+  color {
     x: 1.0
     y: 1.0
     z: 1.0
     w: 1.0
   }
-  size {
-    x: 200.0
-    y: 100.0
-    z: 0.0
-    w: 1.0
-  }
-  color {
-    x: 0.3019608
-    y: 0.4
-    z: 0.8
-    w: 1.0
-  }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: ""
-  id: "green_box"
+  texture: "test/mon_idle"
+  id: "monster"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER

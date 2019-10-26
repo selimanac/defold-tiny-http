@@ -40,7 +40,7 @@ embedded_instances {
   data: "embedded_components {\n"
   "  id: \"sprite\"\n"
   "  type: \"sprite\"\n"
-  "  data: \"tile_set: \\\"/example/test.atlas\\\"\\n"
+  "  data: \"tile_set: \\\"/assets/test.atlas\\\"\\n"
   "default_animation: \\\"icon_192\\\"\\n"
   "material: \\\"/builtins/materials/sprite.material\\\"\\n"
   "blend_mode: BLEND_MODE_ALPHA\\n"

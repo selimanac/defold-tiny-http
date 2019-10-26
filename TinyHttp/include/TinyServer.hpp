@@ -2,6 +2,7 @@
 #include <thread>
 #include <httplib.h>
 #include <Enums.hpp>
+#include <dmsdk/dlib/log.h>
 
 using namespace httplib;
 
@@ -49,4 +50,6 @@ private:
     Server svr;
 
     char * parseParams(const Request &req);
+
+    int getEventID(const Request &req);
 };
