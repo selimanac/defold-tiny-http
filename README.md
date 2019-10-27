@@ -61,7 +61,7 @@ end
 
 ## Server API
 
-#### `dhttp.server_start(host, port, callback, [log], [error], [endpoints])`
+#### `dhttp.server_start(host, port, callback, [log], [error], [endpoints])`
 
 
 Inits and starts the server.
