@@ -15,6 +15,8 @@ You can use Tiny Http in your own project by adding this project as a [Defold li
 
 ## Examples
 
+Detailed server and client examples can be found in [examples](https://github.com/selimanac/defold-tiny-http/tree/master/examples) folder.
+
 ### Server
 
 ```lua

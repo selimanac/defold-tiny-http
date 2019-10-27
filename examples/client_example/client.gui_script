@@ -136,7 +136,7 @@ end
 
 function init(self)
     msg.post("@render:", "clear_color", {color = vmath.vector4(251 / 255, 251 / 255, 251 / 255, 0)})
-    msg.post("@render:", "use_fixed_projection", { near = -1, far = 1, zoom = 1 })
+    msg.post("@render:", "use_fixed_projection", {near = -1, far = 1, zoom = 1})
     msg.post(".", "acquire_input_focus")
 
     host_txt = gui.get_node("host")
