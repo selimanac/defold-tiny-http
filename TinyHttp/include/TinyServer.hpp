@@ -13,7 +13,7 @@ public:
     TinyServer(){};
     ~TinyServer();
 
-    void startServ(const char *n_host, int n_port, bool enableLog = false, bool enableError = false);
+    void startServ(const char *n_host, int n_port, bool enableLog = false, bool enableError = true);
     void serverStop();
     void setPostResponseContent(const char *str);
     

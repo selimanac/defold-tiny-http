@@ -20,7 +20,7 @@ static int _serverServe(lua_State *L)
         enableLog = lua_toboolean(L, 4);
     }
 
-    bool enableError = false;
+    bool enableError = true;
     if (lua_isboolean(L, 5))
     {
         enableError = lua_toboolean(L, 5);
@@ -47,11 +47,11 @@ static int _serverServe(lua_State *L)
                     {
 
                         field = lua_tostring(L, -2);
-                        if (field == "end_point")
+                        if (field == "endpoint")
                         {
                             end_point = lua_tostring(L, -1);
                         }
-                        else if (field == "end_point_type")
+                        else if (field == "endpoint_type")
                         {
                             end_point_type = lua_tointeger(L, -1);
                         }

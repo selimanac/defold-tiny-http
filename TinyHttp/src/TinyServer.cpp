@@ -291,7 +291,8 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
         });
 
         svr.Get("/stop", [&](const Request &req, Response &res) {
-            svr.stop();
+            //-svr.stop();
+            serverStop();
         });
 
         if (isServerErrorEnabled)

@@ -12,6 +12,7 @@ extern void QueueCommand(int id,int eventID, char *ws_message); //ADDED
 /*
  * Configuration
  */
+
 #ifndef CPPHTTPLIB_KEEPALIVE_TIMEOUT_SECOND
 #define CPPHTTPLIB_KEEPALIVE_TIMEOUT_SECOND 5
 #endif
@@ -52,6 +53,10 @@ extern void QueueCommand(int id,int eventID, char *ws_message); //ADDED
 #define CPPHTTPLIB_THREAD_POOL_COUNT 8
 #endif
 
+/*
+ * Headers
+ */
+
 #ifdef _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
@@ -90,6 +95,7 @@ typedef int ssize_t;
 #include <ws2tcpip.h>
 
 #undef min //ADDED
+#undef max //ADDED
 
 #ifndef WSA_FLAG_NO_HANDLE_INHERIT
 #define WSA_FLAG_NO_HANDLE_INHERIT 0x80
@@ -165,6 +171,9 @@ inline const unsigned char *ASN1_STRING_get0_data(const ASN1_STRING *asn1) {
 #include <zlib.h>
 #endif
 
+/*
+ * Declaration
+ */
 namespace httplib {
 
 namespace detail {
@@ -190,9 +199,12 @@ typedef std::function<void(const char *data, size_t data_len)> DataSink;
 
 typedef std::function<void()> Done;
 
+typedef std::function<void(size_t offset, size_t length, DataSink sink)>
+    ContentProvider;
+
 typedef std::function<void(size_t offset, size_t length, DataSink sink,
                            Done done)>
-    ContentProvider;
+    ContentProviderWithCloser;
 
 typedef std::function<bool(const char *data, size_t data_length, size_t offset,
                            uint64_t content_length)>
@@ -258,6 +270,10 @@ struct Request {
 
   bool has_file(const char *key) const;
   MultipartFile get_file_value(const char *key) const;
+
+  // private members...
+  size_t content_length;
+  ContentProvider content_provider;
 };
 
 struct Response {
@@ -285,7 +301,7 @@ struct Response {
       std::function<void(size_t offset, DataSink sink, Done done)> provider,
       std::function<void()> resource_releaser = [] {});
 
-  Response() : status(-1), content_provider_resource_length(0) {}
+  Response() : status(-1), content_length(0) {}
 
   ~Response() {
     if (content_provider_resource_releaser) {
@@ -293,8 +309,9 @@ struct Response {
     }
   }
 
-  size_t content_provider_resource_length;
-  ContentProvider content_provider;
+  // private members...
+  size_t content_length;
+  ContentProviderWithCloser content_provider;
   std::function<void()> content_provider_resource_releaser;
 };
 
@@ -584,36 +601,81 @@ public:
   std::shared_ptr<Response> Head(const char *path, const Headers &headers);
 
   std::shared_ptr<Response> Post(const char *path, const std::string &body,
-                                 const char *content_type);
+                                 const char *content_type,
+                                 bool compress = false);
 
   std::shared_ptr<Response> Post(const char *path, const Headers &headers,
                                  const std::string &body,
-                                 const char *content_type);
-
-  std::shared_ptr<Response> Post(const char *path, const Params &params);
-
-  std::shared_ptr<Response> Post(const char *path, const Headers &headers,
-                                 const Params &params);
+                                 const char *content_type,
+                                 bool compress = false);
 
   std::shared_ptr<Response> Post(const char *path,
-                                 const MultipartFormDataItems &items);
+                                 size_t content_length,
+                                 ContentProvider content_provider,
+                                 const char *content_type,
+                                 bool compress = false);
 
   std::shared_ptr<Response> Post(const char *path, const Headers &headers,
-                                 const MultipartFormDataItems &items);
+                                 size_t content_length,
+                                 ContentProvider content_provider,
+                                 const char *content_type,
+                                 bool compress = false);
+
+  std::shared_ptr<Response> Post(const char *path, const Params &params,
+                                 bool compress = false);
+
+  std::shared_ptr<Response> Post(const char *path, const Headers &headers,
+                                 const Params &params, bool compress = false);
+
+  std::shared_ptr<Response> Post(const char *path,
+                                 const MultipartFormDataItems &items,
+                                 bool compress = false);
+
+  std::shared_ptr<Response> Post(const char *path, const Headers &headers,
+                                 const MultipartFormDataItems &items,
+                                 bool compress = false);
 
   std::shared_ptr<Response> Put(const char *path, const std::string &body,
-                                const char *content_type);
+                                const char *content_type,
+                                bool compress = false);
 
   std::shared_ptr<Response> Put(const char *path, const Headers &headers,
                                 const std::string &body,
-                                const char *content_type);
+                                const char *content_type,
+                                bool compress = false);
+
+  std::shared_ptr<Response> Put(const char *path,
+                                size_t content_length,
+                                ContentProvider content_provider,
+                                const char *content_type,
+                                bool compress = false);
+
+  std::shared_ptr<Response> Put(const char *path, const Headers &headers,
+                                size_t content_length,
+                                ContentProvider content_provider,
+                                const char *content_type,
+                                bool compress = false);
 
   std::shared_ptr<Response> Patch(const char *path, const std::string &body,
-                                  const char *content_type);
+                                  const char *content_type,
+                                  bool compress = false);
 
   std::shared_ptr<Response> Patch(const char *path, const Headers &headers,
                                   const std::string &body,
-                                  const char *content_type);
+                                  const char *content_type,
+                                  bool compress = false);
+
+  std::shared_ptr<Response> Patch(const char *path,
+                                 size_t content_length,
+                                 ContentProvider content_provider,
+                                 const char *content_type,
+                                 bool compress = false);
+
+  std::shared_ptr<Response> Patch(const char *path, const Headers &headers,
+                                 size_t content_length,
+                                 ContentProvider content_provider,
+                                 const char *content_type,
+                                 bool compress = false);
 
   std::shared_ptr<Response> Delete(const char *path);
 
@@ -655,6 +717,14 @@ private:
   bool read_response_line(Stream &strm, Response &res);
   void write_request(Stream &strm, const Request &req, bool last_connection);
   bool redirect(const Request &req, Response &res);
+
+  std::shared_ptr<Response> send_with_content_provider(
+      const char *method,
+      const char *path, const Headers &headers,
+      const std::string& body,
+      size_t content_length,
+      ContentProvider content_provider,
+      const char *content_type, bool compress);
 
   virtual bool process_and_close_socket(
       socket_t sock, size_t request_count,
@@ -745,7 +815,7 @@ public:
 
   long get_openssl_verify_result() const;
 
-  SSL_CTX* ssl_context() const noexcept;
+  SSL_CTX *ssl_context() const noexcept;
 
 private:
   virtual bool process_and_close_socket(
@@ -773,6 +843,7 @@ private:
 /*
  * Implementation
  */
+
 namespace detail {
 
 inline bool is_hex(char c, int &v) {
@@ -1069,7 +1140,8 @@ inline bool wait_until_socket_is_ready(socket_t sock, time_t sec, time_t usec) {
       pfd_read.revents & (POLLIN | POLLOUT)) {
     int error = 0;
     socklen_t len = sizeof(error);
-    return getsockopt(sock, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&error), &len) >= 0 &&
+    return getsockopt(sock, SOL_SOCKET, SO_ERROR,
+                      reinterpret_cast<char *>(&error), &len) >= 0 &&
            !error;
   }
   return false;
@@ -1180,9 +1252,11 @@ socket_t create_socket(const char *host, int port, Fn fn,
 
     // Make 'reuse address' option available
     int yes = 1;
-    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&yes), sizeof(yes));
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(&yes),
+               sizeof(yes));
 #ifdef SO_REUSEPORT
-    setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<char*>(&yes), sizeof(yes));
+    setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, reinterpret_cast<char *>(&yes),
+               sizeof(yes));
 #endif
 
     // bind or connect
@@ -1224,8 +1298,8 @@ inline std::string get_remote_addr(socket_t sock) {
   if (!getpeername(sock, reinterpret_cast<struct sockaddr *>(&addr), &len)) {
     char ipstr[NI_MAXHOST];
 
-    if (!getnameinfo(reinterpret_cast<struct sockaddr *>(&addr), len, ipstr, sizeof(ipstr),
-                     nullptr, 0, NI_NUMERICHOST)) {
+    if (!getnameinfo(reinterpret_cast<struct sockaddr *>(&addr), len, ipstr,
+                     sizeof(ipstr), nullptr, 0, NI_NUMERICHOST)) {
       return ipstr;
     }
   }
@@ -1237,7 +1311,7 @@ inline const char *find_content_type(const std::string &path) {
   auto ext = file_extension(path);
   if (ext == "txt") {
     return "text/plain";
-  } else if (ext == "html") {
+  } else if (ext == "html" || ext == "htm") {
     return "text/html";
   } else if (ext == "css") {
     return "text/css";
@@ -1306,7 +1380,8 @@ inline bool compress(std::string &content) {
   if (ret != Z_OK) { return false; }
 
   strm.avail_in = content.size();
-  strm.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef*>(content.data()));
+  strm.next_in =
+      const_cast<Bytef *>(reinterpret_cast<const Bytef *>(content.data()));
 
   std::string compressed;
 
@@ -1314,7 +1389,7 @@ inline bool compress(std::string &content) {
   char buff[bufsiz];
   do {
     strm.avail_out = bufsiz;
-    strm.next_out = reinterpret_cast<Bytef*>(buff);
+    strm.next_out = reinterpret_cast<Bytef *>(buff);
     ret = deflate(&strm, Z_FINISH);
     assert(ret != Z_STREAM_ERROR);
     compressed.append(buff, bufsiz - strm.avail_out);
@@ -1351,13 +1426,13 @@ public:
     int ret = Z_OK;
 
     strm.avail_in = data_length;
-    strm.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef *>(data));
+    strm.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(data));
 
     const auto bufsiz = 16384;
     char buff[bufsiz];
     do {
       strm.avail_out = bufsiz;
-      strm.next_out = reinterpret_cast<Bytef*>(buff);
+      strm.next_out = reinterpret_cast<Bytef *>(buff);
 
       ret = inflate(&strm, Z_NO_FLUSH);
       assert(ret != Z_STREAM_ERROR);
@@ -1433,8 +1508,6 @@ inline bool read_content_with_length(Stream &strm, uint64_t len,
   uint64_t r = 0;
   while (r < len) {
     auto read_len = static_cast<size_t>(len - r);
-  //#undef min
-    //size_t minValue_ = (std::min(read_len, CPPHTTPLIB_RECV_BUFSIZ));
     auto n = strm.read(buf, std::min(read_len, CPPHTTPLIB_RECV_BUFSIZ));
     if (n <= 0) { return false; }
 
@@ -1586,7 +1659,7 @@ inline int write_headers(Stream &strm, const T &info, const Headers &headers) {
   return write_len;
 }
 
-inline ssize_t write_content(Stream &strm, ContentProvider content_provider,
+inline ssize_t write_content(Stream &strm, ContentProviderWithCloser content_provider,
                              size_t offset, size_t length) {
   size_t begin_offset = offset;
   size_t end_offset = offset + length;
@@ -1605,7 +1678,7 @@ inline ssize_t write_content(Stream &strm, ContentProvider content_provider,
 }
 
 inline ssize_t write_content_chunked(Stream &strm,
-                                     ContentProvider content_provider) {
+                                     ContentProviderWithCloser content_provider) {
   size_t offset = 0;
   auto data_available = true;
   ssize_t total_written_length = 0;
@@ -1816,6 +1889,7 @@ inline bool parse_multipart_formdata(const std::string &boundary,
 }
 
 inline bool parse_range_header(const std::string &s, Ranges &ranges) {
+  //ADDED - Exception removed
 
     static auto re = std::regex(R"(bytes=(\d*-\d*(?:,\s*\d*-\d*)*))");
     std::smatch m;
@@ -1838,7 +1912,8 @@ inline bool parse_range_header(const std::string &s, Ranges &ranges) {
                         }
 
                         if (first != -1 && last != -1 && first > last) {
-                         // throw std::runtime_error("invalid range error");
+                          //ADDED -throwremoved
+                          assert("invalid range error");
                         }
                         ranges.emplace_back(std::make_pair(first, last));
                       }
@@ -1846,7 +1921,7 @@ inline bool parse_range_header(const std::string &s, Ranges &ranges) {
       return true;
     }
     return false;
- 
+  
 }
 
 inline std::string to_lower(const char *beg, const char *end) {
@@ -1994,7 +2069,7 @@ get_range_offset_and_length(const Request &req, const Response &res,
                             size_t index) {
   auto r = req.ranges[index];
 
-  if (r.second == -1) { r.second = res.content_provider_resource_length - 1; }
+  if (r.second == -1) { r.second = res.content_length - 1; }
 
   return std::make_pair(r.first, r.second - r.first + 1);
 }
@@ -2129,7 +2204,7 @@ inline void Response::set_content_provider(
     std::function<void(size_t offset, size_t length, DataSink sink)> provider,
     std::function<void()> resource_releaser) {
   assert(length > 0);
-  content_provider_resource_length = length;
+  content_length = length;
   content_provider = [provider](size_t offset, size_t length, DataSink sink,
                                 Done) { provider(offset, length, sink); };
   content_provider_resource_releaser = resource_releaser;
@@ -2138,7 +2213,7 @@ inline void Response::set_content_provider(
 inline void Response::set_chunked_content_provider(
     std::function<void(size_t offset, DataSink sink, Done done)> provider,
     std::function<void()> resource_releaser) {
-  content_provider_resource_length = 0;
+  content_length = 0;
   content_provider = [provider](size_t offset, size_t, DataSink sink,
                                 Done done) { provider(offset, sink, done); };
   content_provider_resource_releaser = resource_releaser;
@@ -2331,8 +2406,9 @@ inline void Server::stop() {
 }
 
 inline bool Server::parse_request_line(const char *s, Request &req) {
-  static std::regex re("(GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH|PRI) "
-                       "(([^?]+)(?:\\?(.+?))?) (HTTP/1\\.[01])\r\n");
+  static std::regex re(
+      "(GET|HEAD|POST|PUT|DELETE|CONNECT|OPTIONS|TRACE|PATCH|PRI) "
+      "(([^?]+)(?:\\?(.+?))?) (HTTP/1\\.[01])\r\n");
 
   std::cmatch m;
   if (std::regex_match(s, m, re)) {
@@ -2397,17 +2473,17 @@ inline bool Server::write_response(Stream &strm, bool last_connection,
   }
 
   if (res.body.empty()) {
-    if (res.content_provider_resource_length > 0) {
+    if (res.content_length > 0) {
       size_t length = 0;
       if (req.ranges.empty()) {
-        length = res.content_provider_resource_length;
+        length = res.content_length;
       } else if (req.ranges.size() == 1) {
         auto offsets = detail::get_range_offset_and_length(
-            req, res.content_provider_resource_length, 0);
+            req, res.content_length, 0);
         auto offset = offsets.first;
         length = offsets.second;
         auto content_range = detail::make_content_range_header_field(
-            offset, length, res.content_provider_resource_length);
+            offset, length, res.content_length);
         res.set_header("Content-Range", content_range);
       } else {
         length = detail::get_multipart_ranges_data_length(req, res, boundary,
@@ -2477,15 +2553,15 @@ inline bool
 Server::write_content_with_provider(Stream &strm, const Request &req,
                                     Response &res, const std::string &boundary,
                                     const std::string &content_type) {
-  if (res.content_provider_resource_length) {
+  if (res.content_length) {
     if (req.ranges.empty()) {
       if (detail::write_content(strm, res.content_provider, 0,
-                                res.content_provider_resource_length) < 0) {
+                                res.content_length) < 0) {
         return false;
       }
     } else if (req.ranges.size() == 1) {
       auto offsets = detail::get_range_offset_and_length(
-          req, res.content_provider_resource_length, 0);
+          req, res.content_length, 0);
       auto offset = offsets.first;
       auto length = offsets.second;
       if (detail::write_content(strm, res.content_provider, offset, length) <
@@ -2570,9 +2646,7 @@ inline int Server::bind_internal(const char *host, int port, int socket_flags) {
 inline bool Server::listen_internal() {
   auto ret = true;
   is_running_ = true;
-
-  QueueCommand(0, 0,  "{\"server_status\": 1}"); // ADDED
-  
+  QueueCommand(0, 0,  "{\"server_status\": 1}"); //ADDED
   {
     std::unique_ptr<TaskQueue> task_queue(new_task_queue());
 
@@ -2613,7 +2687,7 @@ inline bool Server::listen_internal() {
   }
 
   is_running_ = false;
-  QueueCommand(0, 0, "{\"server_status\": 2}"); // ADDED
+  QueueCommand(0, 0, "{\"server_status\": 2}"); //ADDED
   return ret;
 }
 
@@ -2696,7 +2770,8 @@ Server::process_request(Stream &strm, bool last_connection,
   req.set_header("REMOTE_ADDR", strm.get_remote_addr());
 
   // Body
-  if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH" || req.method == "PRI") {
+  if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH" ||
+      req.method == "PRI") {
     if (!detail::read_content(strm, req, payload_max_length_, res.status,
                               Progress(), [&](const char *buf, size_t n) {
                                 if (req.body.size() + n > req.body.max_size()) {
@@ -2828,7 +2903,8 @@ inline bool Client::send(const std::vector<Request> &requests,
 
     if (!process_and_close_socket(
             sock, requests.size() - i,
-            [&](Stream &strm, bool last_connection, bool &connection_close) -> bool {
+            [&](Stream &strm, bool last_connection,
+                bool &connection_close) -> bool {
               auto &req = requests[i];
               auto res = Response();
               i++;
@@ -2929,7 +3005,10 @@ inline void Client::write_request(Stream &strm, const Request &req,
   }
 
   if (req.body.empty()) {
-    if (req.method == "POST" || req.method == "PUT" || req.method == "PATCH") {
+    if (req.content_provider) {
+      auto length = std::to_string(req.content_length);
+      headers.emplace("Content-Length", length);
+    } else {
       headers.emplace("Content-Length", "0");
     }
   } else {
@@ -2945,12 +3024,79 @@ inline void Client::write_request(Stream &strm, const Request &req,
 
   detail::write_headers(bstrm, req, headers);
 
-  // Body
-  if (!req.body.empty()) { bstrm.write(req.body); }
-
   // Flush buffer
   auto &data = bstrm.get_buffer();
   strm.write(data.data(), data.size());
+
+  // Body
+  if (req.body.empty()) {
+    if (req.content_provider) {
+      size_t offset = 0;
+      size_t end_offset = req.content_length;
+      while (offset < end_offset) {
+        req.content_provider(
+            offset, end_offset - offset,
+            [&](const char *d, size_t l) {
+              auto written_length = strm.write(d, l);
+              offset += written_length;
+            });
+      }
+    }
+  } else {
+    strm.write(req.body);
+  }
+}
+
+inline std::shared_ptr<Response>
+Client::send_with_content_provider(
+     const char *method,
+     const char *path, const Headers &headers,
+     const std::string& body,
+     size_t content_length,
+     ContentProvider content_provider,
+     const char *content_type, bool compress) {
+
+  Request req;
+  req.method = method;
+  req.headers = headers;
+  req.path = path;
+
+  req.headers.emplace("Content-Type", content_type);
+
+#ifdef CPPHTTPLIB_ZLIB_SUPPORT
+  if (compress) {
+    if (content_provider) {
+      size_t offset = 0;
+      while (offset < content_length) {
+        content_provider(
+          offset,
+          content_length - offset,
+          [&](const char *data, size_t data_len) {
+            req.body.append(data, data_len);
+            offset += data_len;
+          });
+      }
+    } else {
+      req.body = body;
+    }
+
+    if (!detail::compress(req.body)) { return nullptr; }
+    req.headers.emplace("Content-Encoding", "gzip");
+  }
+  else
+#endif
+  {
+    if (content_provider) {
+      req.content_length = content_length;
+      req.content_provider = content_provider;
+    } else {
+      req.body = body;
+    }
+  }
+
+  auto res = std::make_shared<Response>();
+
+  return send(req, *res) ? res : nullptr;
 }
 
 inline bool Client::process_request(Stream &strm, const Request &req,
@@ -2994,8 +3140,7 @@ inline bool Client::process_request(Stream &strm, const Request &req,
     }
 
     int dummy_status;
-    size_t maxValue_ = (std::numeric_limits<size_t>::max)(); //ADDED
-    if (!detail::read_content(strm, res, maxValue_,
+    if (!detail::read_content(strm, res, std::numeric_limits<size_t>::max(),
                               dummy_status, req.progress, out)) {
       return false;
     }
@@ -3112,34 +3257,44 @@ inline std::shared_ptr<Response> Client::Head(const char *path,
 
 inline std::shared_ptr<Response> Client::Post(const char *path,
                                               const std::string &body,
-                                              const char *content_type) {
-  return Post(path, Headers(), body, content_type);
+                                              const char *content_type,
+                                              bool compress) {
+  return Post(path, Headers(), body, content_type, compress);
+}
+
+inline std::shared_ptr<Response>
+Client::Post(const char *path, const Headers &headers, const std::string &body,
+             const char *content_type, bool compress) {
+  return send_with_content_provider(
+     "POST", path, headers, body, 0, nullptr, content_type, compress);
+}
+
+inline std::shared_ptr<Response>
+Client::Post(const char *path, const Params &params, bool compress) {
+  return Post(path, Headers(), params, compress);
+}
+
+inline std::shared_ptr<Response> Client::Post(const char *path,
+                                              size_t content_length,
+                                              ContentProvider content_provider,
+                                              const char *content_type,
+                                              bool compress) {
+  return Post(path, Headers(), content_length, content_provider, content_type, compress);
+}
+
+inline std::shared_ptr<Response>
+Client::Post(const char *path, const Headers &headers,
+             size_t content_length,
+             ContentProvider content_provider,
+             const char *content_type, bool compress) {
+  return send_with_content_provider(
+     "POST", path, headers, std::string(), content_length, content_provider, content_type, compress);
 }
 
 inline std::shared_ptr<Response> Client::Post(const char *path,
                                               const Headers &headers,
-                                              const std::string &body,
-                                              const char *content_type) {
-  Request req;
-  req.method = "POST";
-  req.headers = headers;
-  req.path = path;
-
-  req.headers.emplace("Content-Type", content_type);
-  req.body = body;
-
-  auto res = std::make_shared<Response>();
-
-  return send(req, *res) ? res : nullptr;
-}
-
-inline std::shared_ptr<Response> Client::Post(const char *path,
-                                              const Params &params) {
-  return Post(path, Headers(), params);
-}
-
-inline std::shared_ptr<Response>
-Client::Post(const char *path, const Headers &headers, const Params &params) {
+                                              const Params &params,
+                                              bool compress) {
   std::string query;
   for (auto it = params.begin(); it != params.end(); ++it) {
     if (it != params.begin()) { query += "&"; }
@@ -3148,92 +3303,103 @@ Client::Post(const char *path, const Headers &headers, const Params &params) {
     query += detail::encode_url(it->second);
   }
 
-  return Post(path, headers, query, "application/x-www-form-urlencoded");
+  return Post(path, headers, query, "application/x-www-form-urlencoded",
+              compress);
 }
 
 inline std::shared_ptr<Response>
-Client::Post(const char *path, const MultipartFormDataItems &items) {
-  return Post(path, Headers(), items);
+Client::Post(const char *path, const MultipartFormDataItems &items,
+             bool compress) {
+  return Post(path, Headers(), items, compress);
 }
 
 inline std::shared_ptr<Response>
 Client::Post(const char *path, const Headers &headers,
-             const MultipartFormDataItems &items) {
-  Request req;
-  req.method = "POST";
-  req.headers = headers;
-  req.path = path;
-
+             const MultipartFormDataItems &items, bool compress) {
   auto boundary = detail::make_multipart_data_boundary();
 
-  req.headers.emplace("Content-Type",
-                      "multipart/form-data; boundary=" + boundary);
+  std::string body;
 
   for (const auto &item : items) {
-    req.body += "--" + boundary + "\r\n";
-    req.body += "Content-Disposition: form-data; name=\"" + item.name + "\"";
+    body += "--" + boundary + "\r\n";
+    body += "Content-Disposition: form-data; name=\"" + item.name + "\"";
     if (!item.filename.empty()) {
-      req.body += "; filename=\"" + item.filename + "\"";
+      body += "; filename=\"" + item.filename + "\"";
     }
-    req.body += "\r\n";
+    body += "\r\n";
     if (!item.content_type.empty()) {
-      req.body += "Content-Type: " + item.content_type + "\r\n";
+      body += "Content-Type: " + item.content_type + "\r\n";
     }
-    req.body += "\r\n";
-    req.body += item.content + "\r\n";
+    body += "\r\n";
+    body += item.content + "\r\n";
   }
 
-  req.body += "--" + boundary + "--\r\n";
+  body += "--" + boundary + "--\r\n";
 
-  auto res = std::make_shared<Response>();
-
-  return send(req, *res) ? res : nullptr;
+  std::string content_type = "multipart/form-data; boundary=" + boundary;
+  return Post(path, headers, body, content_type.c_str(), compress);
 }
 
 inline std::shared_ptr<Response> Client::Put(const char *path,
                                              const std::string &body,
-                                             const char *content_type) {
-  return Put(path, Headers(), body, content_type);
+                                             const char *content_type,
+                                             bool compress) {
+  return Put(path, Headers(), body, content_type, compress);
+}
+
+inline std::shared_ptr<Response>
+Client::Put(const char *path, const Headers &headers, const std::string &body,
+            const char *content_type, bool compress) {
+  return send_with_content_provider(
+     "PUT", path, headers, body, 0, nullptr, content_type, compress);
 }
 
 inline std::shared_ptr<Response> Client::Put(const char *path,
-                                             const Headers &headers,
-                                             const std::string &body,
-                                             const char *content_type) {
-  Request req;
-  req.method = "PUT";
-  req.headers = headers;
-  req.path = path;
+                                             size_t content_length,
+                                             ContentProvider content_provider,
+                                             const char *content_type,
+                                             bool compress) {
+  return Put(path, Headers(), content_length, content_provider, content_type, compress);
+}
 
-  req.headers.emplace("Content-Type", content_type);
-  req.body = body;
-
-  auto res = std::make_shared<Response>();
-
-  return send(req, *res) ? res : nullptr;
+inline std::shared_ptr<Response>
+Client::Put(const char *path, const Headers &headers,
+            size_t content_length,
+            ContentProvider content_provider,
+            const char *content_type, bool compress) {
+  return send_with_content_provider(
+     "PUT", path, headers, std::string(), content_length, content_provider, content_type, compress);
 }
 
 inline std::shared_ptr<Response> Client::Patch(const char *path,
                                                const std::string &body,
-                                               const char *content_type) {
-  return Patch(path, Headers(), body, content_type);
+                                               const char *content_type,
+                                               bool compress) {
+  return Patch(path, Headers(), body, content_type, compress);
+}
+
+inline std::shared_ptr<Response>
+Client::Patch(const char *path, const Headers &headers, const std::string &body,
+              const char *content_type, bool compress) {
+  return send_with_content_provider(
+     "PATCH", path, headers, body, 0, nullptr, content_type, compress);
 }
 
 inline std::shared_ptr<Response> Client::Patch(const char *path,
-                                               const Headers &headers,
-                                               const std::string &body,
-                                               const char *content_type) {
-  Request req;
-  req.method = "PATCH";
-  req.headers = headers;
-  req.path = path;
+                                               size_t content_length,
+                                               ContentProvider content_provider,
+                                               const char *content_type,
+                                               bool compress) {
+  return Patch(path, Headers(), content_length, content_provider, content_type, compress);
+}
 
-  req.headers.emplace("Content-Type", content_type);
-  req.body = body;
-
-  auto res = std::make_shared<Response>();
-
-  return send(req, *res) ? res : nullptr;
+inline std::shared_ptr<Response>
+Client::Patch(const char *path, const Headers &headers,
+              size_t content_length,
+              ContentProvider content_provider,
+              const char *content_type, bool compress) {
+  return send_with_content_provider(
+     "PATCH", path, headers, std::string(), content_length, content_provider, content_type, compress);
 }
 
 inline std::shared_ptr<Response> Client::Delete(const char *path) {
@@ -3395,17 +3561,18 @@ private:
 class SSLInit {
 public:
   SSLInit() {
-#if OPENSSL_VERSION_NUMBER >= 0x1010001fL
-    OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS | OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
-#else
+#if OPENSSL_VERSION_NUMBER < 0x1010001fL
     SSL_load_error_strings();
     SSL_library_init();
+#else
+    OPENSSL_init_ssl(
+        OPENSSL_INIT_LOAD_SSL_STRINGS | OPENSSL_INIT_LOAD_CRYPTO_STRINGS, NULL);
 #endif
   }
 
   ~SSLInit() {
 #if OPENSSL_VERSION_NUMBER < 0x1010001fL
-	  ERR_free_strings();
+    ERR_free_strings();
 #endif
   }
 
@@ -3548,9 +3715,7 @@ inline long SSLClient::get_openssl_verify_result() const {
   return verify_result_;
 }
 
-inline SSL_CTX* SSLClient::ssl_context() const noexcept {
-	return ctx_;
-}
+inline SSL_CTX *SSLClient::ssl_context() const noexcept { return ctx_; }
 
 inline bool SSLClient::process_and_close_socket(
     socket_t sock, size_t request_count,
