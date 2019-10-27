@@ -82,7 +82,12 @@ static int _clientGet(lua_State *L)
 {
     DM_LUA_STACK_CHECK(L, 0);
     const char *path = luaL_checkstring(L, 1);
-    int eventID = luaL_checkint(L, 2);
+    int eventID = 0;
+    if (!lua_isnone(L, 2))
+    {
+        eventID = luaL_checkint(L, 2);
+    }
+
     server->clientGet(path, eventID);
     return 0;
 }
@@ -92,7 +97,13 @@ static int _clientPost(lua_State *L)
     DM_LUA_STACK_CHECK(L, 0);
 
     const char *path = luaL_checkstring(L, 1);
-    int eventID = luaL_checkint(L, 3);
+
+    int eventID = 0;
+    if (!lua_isnone(L, 3))
+    {
+        eventID = luaL_checkint(L, 3);
+    }
+
     luaL_checktype(L, 2, LUA_TTABLE);
     if (lua_istable(L, 2))
     {

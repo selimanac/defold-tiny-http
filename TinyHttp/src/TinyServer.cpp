@@ -274,7 +274,7 @@ void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool 
         svr.Get(R"(/str/(\w+))", [&](const Request &req, Response &res) {
             char *cstr = serverRegex(req, true);
             res.set_content(cstr, contentType);
-            QueueCommand(0, 0, cstr);
+            QueueCommand(0, getEventID(req), cstr);
         });
 
         svr.Post("/post", [&](const Request &req, Response &res) {

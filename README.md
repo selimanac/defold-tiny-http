@@ -141,22 +141,22 @@ Init the client.
 
 Defold says hi!
 
-#### `dhttp.client_get(endpoint, event_id)`
+#### `dhttp.client_get(endpoint, [event_id])`
 
 | Param  | Desc |
 | ------------- | ------------- |
 | `endpoint` | (_string_) Endpoint address  |
-| `event_id`| (_int_) Event ID for tracking the action  |
+| `[event_id]`| (_int_) Event ID for tracking the action  |
 
 Event IDs are for tracking the request on server and client. They will send as a header. You can easily group you triggers by using event ids.
 
-#### `dhttp.client_post(endpoint, params, event_id)`
+#### `dhttp.client_post(endpoint, params, [event_id])`
 
 | Param  | Desc |
 | ------------- | ------------- |
 | `endpoint` | (_string_) Endpoint address  |
 | `params` | (_string_) Json formated string  |
-| `event_id`| (_int_) Event ID for tracking the action  |
+| `[event_id]`| (_int_) Event ID for tracking the action  |
 
 ```lua
 local temp_table = {
