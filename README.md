@@ -6,7 +6,7 @@ All requests and responses are JSON. You may consider of using [CJSON](https://g
 All server responses are static echo of the request. POST responses are limited but customizable by using [`dhttp.server_post_content`](#dhttpserver_post_contentjson).
 
 ## Installation
-You can use PCG Random in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your game.project file and in the dependencies field under project add:
+You can use Tiny Http in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your game.project file and in the dependencies field under project add:
 
 	https://github.com/selimanac/defold-tiny-http/archive/master.zip
 	
@@ -23,7 +23,7 @@ local port = 8800
 
 -- Server callbacks
 local function server_callbacks(self, message)
-	-- Decode server message
+	-- Decode response
     local jresult = json.decode(message.result)
 
     if jresult.server_status == dhttp.SERVER_START then
@@ -49,15 +49,15 @@ local port = 8800
 
 -- Client callbacks
 local function client_callbacks(self, message)
-    -- Decode server message
+    -- Decode response
     local jresult = json.decode(message.result)
 
-	-- Check eroor
+    -- Check error
     if jresult.error then
         print("Error: ", jresult.error)
-	end
-	
-	pprint(jresult)
+    end
+
+    pprint(jresult)
 end
 
 function init(self)
@@ -75,7 +75,7 @@ end
 #### `dhttp.server_start(host, port, callback, [log], [error], [endpoints])`
 
 
-Inits and starts the server.
+Init and start the server.
 
 | Param  | Desc |
 | ------------- | ------------- |
