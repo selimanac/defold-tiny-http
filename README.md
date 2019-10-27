@@ -1,5 +1,16 @@
 
+Tiny Http Native Extension is a simple http server and client for the Defold Game Engine. 
+
 All requests and responses are JSON. You may consider of using [CJSON](https://github.com/Melsoft-Games/defold-cjson) for encoding and decoding.
+
+All server responses are static echo of the request. POST responses are limited but customizable by using `dhttp.server_post_content`.
+
+## Installation
+You can use PCG Random in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your game.project file and in the dependencies field under project add:
+
+	https://github.com/selimanac/defold-tiny-http/archive/master.zip
+	
+---
 
 ## Examples
 
@@ -83,6 +94,10 @@ Gracefully shutdown the server.
 
 Check if server is running. Returns boolean.
 
+#### `dhttp.server_post_content([json])`
+
+Sets the POST response for all POST endpoints. 
+
 #### Endpoints
 
 There are several built-in endpoints.
@@ -163,3 +178,7 @@ local temp_table = {
 ##### dhttp.METHOD_POST
 ##### dhttp.SERVER_START
 ##### dhttp.SERVER_STOP
+
+## Dependencies
+
+Build by using [cpp-httplib](https://github.com/yhirose/cpp-httplib)
