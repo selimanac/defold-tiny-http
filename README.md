@@ -98,7 +98,7 @@ Check if server is running. Returns boolean.
 
 Sets the POST response for all POST endpoints. 
 
-#### Endpoints
+### Endpoints
 
 There are several built-in endpoints.
 
