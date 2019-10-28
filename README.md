@@ -78,7 +78,7 @@ end
 
 ## Server API
 
-#### `dhttp.server_start(host, port, callback, [log], [error], [endpoints])`
+#### dhttp.server_start(`host, port, callback, [log], [error], [endpoints]`)
 
 
 Init and start the server.
@@ -92,15 +92,15 @@ Init and start the server.
 | `[error]`  | (_boolean_) Turn error responses on/off. Default is true |
 | `[endpoints]`  | (_table_) Optional endpoints |
 
-#### `dhttp.server_stop()`
+#### dhttp.server_stop()
 
 Gracefully shutdown the server.
 
-#### `dhttp.is_server_running()`
+#### dhttp.is_server_running()
 
 Check if server is running. Returns boolean.
 
-#### `dhttp.server_post_content([json])`
+#### dhttp.server_post_content(`[json]`)
 
 Sets the POST response for all POST endpoints. 
 
@@ -138,15 +138,15 @@ dhttp.server_start("localhost", 8888, server_callbacks, false, true, endpoints)
 
 ## Client API
 
-#### `dhttp.client_start(host, port, client_callbacks)`
+#### dhttp.client_start(`host, port, client_callbacks`)
 
 Init the client.
 
-#### `dhttp.client_hi()`
+#### dhttp.client_hi()
 
 Defold says hi!
 
-#### `dhttp.client_get(endpoint, [event_id])`
+#### dhttp.client_get(`endpoint, [event_id]`)
 
 | Param  | Desc |
 | ------------- | ------------- |
@@ -155,7 +155,7 @@ Defold says hi!
 
 Event IDs are for tracking the requests on server and client. They send as a header. You can easily group and parse you triggers by using event ids.
 
-#### `dhttp.client_post(endpoint, params, [event_id])`
+#### dhttp.client_post(`endpoint, params, [event_id]`)
 
 | Param  | Desc |
 | ------------- | ------------- |
