@@ -83,10 +83,6 @@ std::string TinyServer::log(const Request &req, const Response &res)
 
 void TinyServer::initClient(const char *n_host, int n_port)
 {
-    /* if (cli)
-    {
-        delete cli;
-    } */
     chost = n_host;
     cport = n_port;
     cli = new Client(chost, cport, 5);
@@ -142,7 +138,7 @@ void TinyServer::clientPost(const char *path, int eventID)
         dmLogError("Client is not initialized!", 1);
         return;
     }
-    
+
     httplib::Headers headers = {{"Event-ID", std::to_string(eventID)}};
     auto res = cli->Post(path, headers, postParams);
 
