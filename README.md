@@ -37,6 +37,7 @@ local function server_callbacks(self, message)
     else
     	if event_id == 123 then
         	pprint(jresult)
+        	-- Do something fancy
        end
     end
 end
@@ -61,6 +62,7 @@ local function client_callbacks(self, message)
     -- Check error
     if jresult.error then
         print("Error: ", jresult.error)
+        return
     end
 
     pprint(jresult)
@@ -100,9 +102,14 @@ Gracefully shutdown the server.
 
 Check if server is running. Returns boolean.
 
-#### dhttp.server_post_content(`[json]`)
+#### dhttp.server_post_content(`content`)
 
-Sets the POST response for all POST endpoints. 
+Sets the POST response for all POST endpoints. You can set this anytime.
+
+| Param  | Desc |
+| ------------- | ------------- |
+| `content `  | (string) JSON formated string  |
+
 
 ### Endpoints
 
@@ -142,6 +149,13 @@ dhttp.server_start("localhost", 8888, server_callbacks, false, true, endpoints)
 
 Init the client.
 
+| Param  | Desc |
+| ------------- | ------------- |
+| `host`  | (_string_) Host address or IP  |
+| `port`  | (_int_) Port number  |
+| `callback`  | (_function_) Callback function  |
+
+
 #### dhttp.client_hi()
 
 Defold says hi!
@@ -153,15 +167,17 @@ Defold says hi!
 | `endpoint` | (_string_) Endpoint address  |
 | `[event_id]`| (_int_) Event ID for tracking the action  |
 
-Event IDs are for tracking the requests on server and client. They send as a header. You can easily group and parse you triggers by using event ids.
+Event IDs are for tracking the requests on server and client. They send as a header. You can easily group and parse your triggers by using event ids.
 
 #### dhttp.client_post(`endpoint, params, [event_id]`)
 
 | Param  | Desc |
 | ------------- | ------------- |
 | `endpoint` | (_string_) Endpoint address  |
-| `params` | (_string_) Json formated string  |
+| `params` | (_string_) JSON formated string  |
 | `[event_id]`| (_int_) Event ID for tracking the action  |
+
+Event IDs are for tracking the requests on server and client. They send as a header. You can easily group and parse your triggers by using event ids.
 
 ```lua
 local temp_table = {
