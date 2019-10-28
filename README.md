@@ -4,7 +4,7 @@ Tiny Http Native Extension is a simple http server and client for the Defold Gam
 
 All requests and responses are JSON. You may consider of using [CJSON](https://github.com/Melsoft-Games/defold-cjson) for encoding and decoding.
 
-All server responses are static echo of the request. POST responses are limited but customizable by using [`dhttp.server_post_content`](#dhttpserver_post_contentjson).
+All server responses for GET requests are static echo. POST responses are limited but customizable by using [`dhttp.server_post_content`](#dhttpserver_post_contentjson).
 
 ## Installation
 You can use Tiny Http in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your game.project file and in the dependencies field under project add:
@@ -124,7 +124,7 @@ There are several built-in endpoints.
 | "/stop" | (_GET_) Stop the server  |
 
 You can define custom endpoints.  
-Endpoints support regex. But "?" character is reserved and may cause a problem.
+Endpoints support regex. But "?" character is reserved and may cause a crash.
 
 
 ```lua

@@ -20,9 +20,7 @@ local function server_callbacks(self, message)
 
     if j.server_status == dhttp.SERVER_STOP then
         print("Server Stopped")
-    end
-
-    if j.server_status == dhttp.SERVER_START then
+    elseif j.server_status == dhttp.SERVER_START then
         print("Server Running")
 
         -- Get or Post when server is ready
