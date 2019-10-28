@@ -28,13 +28,16 @@ local port = 8800
 local function server_callbacks(self, message)
 	-- Decode response
     local jresult = json.decode(message.result)
+    local event_id = message.event_id
 
     if jresult.server_status == dhttp.SERVER_START then
         -- Server started
     elseif jresult.server_status == dhttp.SERVER_STOP then
         -- Server stopped
     else
-        pprint(jresult)
+    	if event_id == 123 then
+        	pprint(jresult)
+       end
     end
 end
 
@@ -68,7 +71,7 @@ function init(self)
     dhttp.client_start(host, port, client_callbacks)
 
     -- Get endpoint
-    dhttp.client_get("/hi", 1)
+    dhttp.client_get("/hi", 123)
 end
 ```
 
@@ -150,7 +153,7 @@ Defold says hi!
 | `endpoint` | (_string_) Endpoint address  |
 | `[event_id]`| (_int_) Event ID for tracking the action  |
 
-Event IDs are for tracking the request on server and client. They will send as a header. You can easily group you triggers by using event ids.
+Event IDs are for tracking the requests on server and client. They send as a header. You can easily group and parse you triggers by using event ids.
 
 #### `dhttp.client_post(endpoint, params, [event_id])`
 
@@ -174,6 +177,7 @@ local temp_table = {
 
     dhttp.client_post("/post", params, 1)
 ```
+
 
 #### Constants
 

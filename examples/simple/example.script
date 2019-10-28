@@ -2,6 +2,7 @@ local function client_callbacks(self, message)
     print("========================")
     print("client_callbacks")
     pprint(message)
+
     local j = json.decode(message.result)
     pprint(j)
 
@@ -9,10 +10,6 @@ local function client_callbacks(self, message)
         print("Error: ", j.error)
     end
 end
-
--- local function stopserver()
---     dhttp.server_stop()
--- end
 
 local function server_callbacks(self, message)
     print("========================")
@@ -28,19 +25,22 @@ local function server_callbacks(self, message)
     if j.server_status == dhttp.SERVER_START then
         print("Server Running")
 
+        -- Get or Post when server is ready
         local params = {
             data = '{"title": "Test Title"}',
             test = '{"id": 1}'
         }
-        --  dhttp.client_get("/str/abc123", 1)
+
         dhttp.client_post("/test/abc123", params, 2)
-    --  timer.delay(1, false, stopserver)
+    -- dhttp.client_get("/str/abc123", 1) -- Get example
     end
 end
 
 function init(self)
     msg.post("@render:", "use_fixed_projection", {near = -1, far = 1, zoom = 1})
+    go.animate("/go1", "position.y", go.PLAYBACK_LOOP_PINGPONG, 0, go.EASING_INBACK, 3)
 
+    -- Server vars
     local host = "localhost"
     local port = 8800
     local enable_log = true -- Optional
@@ -48,12 +48,12 @@ function init(self)
     -- Optional Endpoints
     local endpoints = {
         {
-            end_point_type = dhttp.METHOD_GET,
-            end_point = "/mix/(.+)"
+            endpoint_type = dhttp.METHOD_GET,
+            endpoint = "/mix/(.+)"
         },
         {
-            end_point_type = dhttp.METHOD_POST,
-            end_point = "/test/(\\w+)"
+            endpoint_type = dhttp.METHOD_POST,
+            endpoint = "/test/(\\w+)"
         }
     }
 
@@ -64,6 +64,4 @@ function init(self)
 
     -- Init Client
     dhttp.client_start(host, port, client_callbacks)
-
-    go.animate("/go1", "position.y", go.PLAYBACK_LOOP_PINGPONG, 0, go.EASING_INBACK, 3)
 end

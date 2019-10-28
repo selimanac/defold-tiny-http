@@ -83,6 +83,10 @@ std::string TinyServer::log(const Request &req, const Response &res)
 
 void TinyServer::initClient(const char *n_host, int n_port)
 {
+    if (cli)
+    {
+        delete cli;
+    }
     chost = n_host;
     cport = n_port;
     cli = new Client(chost, cport, 5);
