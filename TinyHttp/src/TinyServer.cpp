@@ -10,20 +10,6 @@ TinyServer::~TinyServer()
     }
 };
 
-void TinyServer::serverStop()
-{
-    if (svr.is_running())
-    {
-        svr.stop();
-        serverThread->join();
-    }
-}
-
-bool TinyServer::isServerRunning()
-{
-    return svr.is_running();
-}
-
 std::string TinyServer::dump_headers(const Headers &headers)
 {
     std::string s;
@@ -81,6 +67,20 @@ std::string TinyServer::log(const Request &req, const Response &res)
     return s;
 }
 
+void TinyServer::serverStop()
+{
+    if (svr.is_running())
+    {
+        svr.stop();
+        serverThread->join();
+    }
+}
+
+bool TinyServer::isServerRunning()
+{
+    return svr.is_running();
+}
+
 void TinyServer::initClient(const char *n_host, int n_port)
 {
     chost = n_host;
@@ -100,8 +100,7 @@ void TinyServer::clientGet(const char *path, int eventID)
 {
     if (!cli)
     {
-        assert("Failed");
-        dmLogError("Client is not initialized!", 1);
+        dmLogError("Client is not initialized!");
         return;
     }
 
@@ -123,7 +122,6 @@ void TinyServer::clientGet(const char *path, int eventID)
     else if (res)
     {
         std::string error_result = "{ \"error\": " + std::to_string(res->status) + " }";
-
         char *result = new char[error_result.length() + 1];
         strcpy(result, error_result.c_str());
         QueueCommand(1, eventID, result);
@@ -134,8 +132,7 @@ void TinyServer::clientPost(const char *path, int eventID)
 {
     if (!cli)
     {
-        assert("Failed");
-        dmLogError("Client is not initialized!", 1);
+        dmLogError("Client is not initialized!");
         return;
     }
 
@@ -152,16 +149,13 @@ void TinyServer::clientPost(const char *path, int eventID)
     {
         char *result = new char[res->body.length() + 1];
         strcpy(result, res->body.c_str());
-
         QueueCommand(1, eventID, result);
     }
     else if (res)
     {
         std::string error_result = "{ \"error\": " + std::to_string(res->status) + " }";
-
         char *result = new char[error_result.length() + 1];
         strcpy(result, error_result.c_str());
-
         QueueCommand(1, eventID, result);
     }
 }
@@ -214,7 +208,6 @@ int TinyServer::getEventID(const Request &req)
     int event_id = 0;
     if (search != req.headers.end())
     {
-        // std::cout << "Found " << search->first << " " << search->second << '\n';
         event_id = std::stoi(search->second);
     }
     return event_id;
@@ -222,7 +215,6 @@ int TinyServer::getEventID(const Request &req)
 
 void TinyServer::startServ(const char *n_host, int n_port, bool enableLog, bool enableError)
 {
-
     host = n_host;
     port = n_port;
 

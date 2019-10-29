@@ -201,8 +201,7 @@ static void LuaInit(lua_State *L)
 
 dmExtension::Result AppInitializeTinyHttp(dmExtension::AppParams *params)
 {
-    server = new TinyServer;
-    state = new ConnectionState;
+    
     return dmExtension::RESULT_OK;
 }
 
@@ -210,12 +209,24 @@ dmExtension::Result InitializeTinyHttp(dmExtension::Params *params)
 {
     // Init Lua
     LuaInit(params->m_L);
+
+    server = new TinyServer;
+    state = new ConnectionState;
+    state->m_Mutex = dmMutex::New();
+    state->m_CmdQueue.SetCapacity(8);
+
     printf("Registered %s Extension\n", MODULE_NAME);
     return dmExtension::RESULT_OK;
 }
 
 static dmExtension::Result UpdateTinyHttp(dmExtension::Params *params)
 {
+    if (state->m_CmdQueue.Empty())
+    {
+        return dmExtension::RESULT_OK;
+    }
+
+
     if (state)
     {
         FlushCommandQueue();

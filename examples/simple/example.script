@@ -1,3 +1,20 @@
+-- Server vars
+local host = "localhost"
+local port = 8800
+local enable_log = true -- Optional
+local enable_error = true -- Optional
+-- Optional Endpoints
+local endpoints = {
+    {
+        endpoint_type = dhttp.METHOD_GET,
+        endpoint = "/mix/(.+)"
+    },
+    {
+        endpoint_type = dhttp.METHOD_POST,
+        endpoint = "/test/(\\w+)"
+    }
+}
+
 local function client_callbacks(self, message)
     print("========================")
     print("client_callbacks")
@@ -11,6 +28,16 @@ local function client_callbacks(self, message)
     end
 end
 
+local function client_send()
+    -- Get or Post when server is ready
+    local params = {
+        data = '{"title": "Test Title"}',
+        test = '{"id": 1}'
+    }
+    dhttp.client_post("/test/abc123", params, 2)
+    -- dhttp.client_get("/str/abc123", 1) -- Get example
+end
+
 local function server_callbacks(self, message)
     print("========================")
     print("server_callbacks")
@@ -22,38 +49,13 @@ local function server_callbacks(self, message)
         print("Server Stopped")
     elseif j.server_status == dhttp.SERVER_START then
         print("Server Running")
-
-        -- Get or Post when server is ready
-        local params = {
-            data = '{"title": "Test Title"}',
-            test = '{"id": 1}'
-        }
-
-        dhttp.client_post("/test/abc123", params, 2)
-    -- dhttp.client_get("/str/abc123", 1) -- Get example
+        timer.delay(0.1, false, client_send)
     end
 end
 
 function init(self)
     msg.post("@render:", "use_fixed_projection", {near = -1, far = 1, zoom = 1})
     go.animate("/go1", "position.y", go.PLAYBACK_LOOP_PINGPONG, 0, go.EASING_INBACK, 3)
-
-    -- Server vars
-    local host = "localhost"
-    local port = 8800
-    local enable_log = true -- Optional
-    local enable_error = true -- Optional
-    -- Optional Endpoints
-    local endpoints = {
-        {
-            endpoint_type = dhttp.METHOD_GET,
-            endpoint = "/mix/(.+)"
-        },
-        {
-            endpoint_type = dhttp.METHOD_POST,
-            endpoint = "/test/(\\w+)"
-        }
-    }
 
     -- Start Server
     dhttp.server_start(host, port, server_callbacks, enable_log, enable_error, endpoints)

@@ -42,6 +42,7 @@ struct ConnectionState
     }
 
     dmArray<MessageCommand> m_CmdQueue;
+    dmMutex::HMutex m_Mutex;
 };
 ConnectionState *state = 0;
 
@@ -49,6 +50,7 @@ void QueueCommand(int id, int eventID, char *ws_message);
 
 void QueueCommand(int id, int eventID, char *ws_message)
 {
+    DM_MUTEX_SCOPED_LOCK(state->m_Mutex);
     MessageCommand cmd;
     cmd.m_id = id;
     cmd.m_eventId = eventID;
@@ -124,10 +126,9 @@ static void InvokeCallback(LuaCallbackInfo *cbk, MessageCommand *cmd)
 
 static void FlushCommandQueue()
 {
-
+    DM_MUTEX_SCOPED_LOCK(state->m_Mutex);
     for (uint32_t i = 0; i != state->m_CmdQueue.Size(); ++i)
     {
-
         MessageCommand *cmd = &state->m_CmdQueue[i];
         if (cmd->m_id == 0) // From server
         {
@@ -140,6 +141,7 @@ static void FlushCommandQueue()
 
         state->m_CmdQueue.EraseSwap(i--);
     }
+    state->m_CmdQueue.SetSize(0);
 }
 
 TinyServer *server = 0;
