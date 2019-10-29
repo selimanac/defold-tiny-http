@@ -6,7 +6,7 @@ All requests and responses are JSON. You may consider of using [CJSON](https://g
 
 All server responses for GET requests are static echo. POST responses are limited but customizable by using [`dhttp.server_post_content`](#dhttpserver_post_contentjson).
 
-Server works on iOS, Android, MacOS, Win 10 and Linux(Debian 10.x). HTML5 build is not supported.
+Server works on iOS, Android, MacOS, Win 10 and Linux(Debian 10.x). HTML5 build is not supported. Since I don't need it, SSL not supported. But it is [possible](https://github.com/yhirose/cpp-httplib#openssl-support) to add this feature, feel free to PR if you want to. 
 
 ## Installation
 You can use Tiny Http in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your game.project file and in the dependencies field under project add:
