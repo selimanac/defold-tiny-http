@@ -1,6 +1,6 @@
 ![Tiny Http Native Extension](https://selimanac.github.io/assets/gfx/tiny_http_dark.png)
 
-Tiny Http - Defold Native Extension is a simple http server and client for the Defold Game Engine. 
+Tiny Http - Defold Native Extension is a simple http server and client. 
 
 All requests and responses are JSON. You may consider of using [CJSON](https://github.com/Melsoft-Games/defold-cjson) for encoding and decoding.
 
